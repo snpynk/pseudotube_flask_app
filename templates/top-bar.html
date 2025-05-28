@@ -1,0 +1,16 @@
+<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='common.css') }}">
+
+<!-- Top Bar -->
+<div class="top-bar">
+	<a href="/" class="logo">PSEUDOTUBE</a>
+	<div class="search-bar">
+		<input type="text" placeholder="Search...">
+	</div>
+	<div class="right-section">
+		<button class="upload-btn">Upload</button>
+		<p>
+			<a class="account-btn" href="{{ url_for('route_oauth2_authorize', provider='google') }}">{{ user.email }}</a>
+		</p>
+	</div>
+</div>
+

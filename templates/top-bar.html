@@ -9,7 +9,11 @@
 	<div class="right-section">
 		<button class="upload-btn">Upload</button>
 		<p>
-			<a class="account-btn" href="{{ url_for('route_oauth2_authorize', provider='google') }}">{{ user.email }}</a>
+		{% if user.is_authenticated %}
+				<a class="account-btn" href="{{ url_for('route_logout') }}">{{ user.email }}</a>
+		{% else %}
+				<a class="account-btn" href="{{ url_for('route_oauth2_authorize', provider='google') }}">Login</a>
+		{% endif %}
 		</p>
 	</div>
 </div>

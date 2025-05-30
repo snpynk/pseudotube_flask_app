@@ -4,6 +4,7 @@ entrypoint: gunicorn -b :$PORT app:app
 
 environment:
   IS_GAE: true
+  PSEUDOTUBE_GCP_BUCKET_NAME: "pseudotube-video-storage"
 
 handlers:
   - url: /.*

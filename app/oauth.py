@@ -1,12 +1,10 @@
 import secrets
-from json import load, loads
-import os
+from json import loads
 from typing import TypedDict
 from urllib.parse import urlencode
 
 import requests
 from flask import redirect, session, url_for
-from google.cloud import secretmanager
 
 
 class Userinfo(TypedDict):
@@ -17,16 +15,11 @@ class Userinfo(TypedDict):
 
 
 class OAuthProviderManager:
-    def __init__(self):
+    def __init__(self, providers_json):
         self.providers = {}
+        self.providers_json = providers_json
 
     def setup(self):
-        google_oauth_cred_filename = "oauth2.creds.json"
-
-        if os.path.exists(google_oauth_cred_filename):
-            with open(google_oauth_cred_filename, "r") as f:
-                os.environ["PSEUDOTUBE_OAUTH2_PROVIDERS"] = f"[{f.read()}]"
-
         google_provider_data = self.get_oath2_providers_secret()[0].get("web")
 
         if not google_provider_data:
@@ -139,6 +132,5 @@ class OAuthProviderManager:
     def is_valid_provider(self, name):
         return name in self.providers
 
-    @staticmethod
-    def get_oath2_providers_secret() -> list[dict]:
-        return loads(os.getenv("PSEUDOTUBE_OAUTH2_PROVIDERS", "{}"))
+    def get_oath2_providers_secret(self) -> list[dict]:
+        return loads(self.providers_json)

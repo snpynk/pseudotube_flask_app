@@ -14,11 +14,11 @@ def create_app():
 
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///project.db"
 
-    login_manager.init_app(app)
     db.init_app(app)
 
+    login_manager.init_app(app)
+
     provider_manager.setup()
-    gae.setup()
 
     @login_manager.user_loader
     def user_loader(user_id):

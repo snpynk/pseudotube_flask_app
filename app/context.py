@@ -8,8 +8,10 @@ from .gae import GAE
 
 login_manager = LoginManager()
 
-provider_manager = OAuthProviderManager()
+login_manager = LoginManager()
 
 db = SQLAlchemy()
 
 gae = GAE()
+
+provider_manager = OAuthProviderManager(gae.OAUTH2_PROVIDERS)

@@ -34,6 +34,14 @@ def create_app():
 
     @app.route("/upload", methods=["POST"])
     def route_upload():
+        if not current_user.is_authenticated:
+            return render_template(
+                "redirect.html",
+                redirect_url=url_for("route_index"),
+                message="You must be logged in to upload a video.",
+                timeout=5,
+            )
+
         if not (request and request.files and "file-upload" in request.files.keys()):
             return render_template(
                 "redirect.html",

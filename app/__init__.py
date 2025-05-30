@@ -52,7 +52,8 @@ def create_app():
                 timeout=5,
             )
 
-        if not file.content_type.startswith("video/"):
+        content_type = file.content_type or ""
+        if not content_type.startswith("video/"):
             return render_template(
                 "redirect.html",
                 redirect_url=url_for("route_index"),
@@ -60,8 +61,10 @@ def create_app():
                 timeout=5,
             )
 
+        file_bytes = file.read()
+
         try:
-            video.validate_video_streamable(file)
+            video.validate_video_streamable(file_bytes)
         except video.VideoStreamingError as err:
             return render_template(
                 "redirect.html",

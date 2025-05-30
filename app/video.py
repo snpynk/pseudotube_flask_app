@@ -2,7 +2,6 @@ from subprocess import Popen, PIPE
 import subprocess
 from json import loads
 from typing import TypedDict
-from werkzeug.datastructures import FileStorage
 
 ALLOWED_VIDEO_CODECS = {"h264", "hevc", "h265", "avc", "av1"}
 ALLOWED_AUDIO_CODECS = {"aac", "opus"}
@@ -78,9 +77,8 @@ def validate_video_duration(info: VideoFormatInfo) -> None:
         raise VideoStreamingError("Video duration is too short.")
 
 
-def validate_video_streamable(file: FileStorage) -> None:
+def validate_video_streamable(file_bytes: bytes) -> None:
     try:
-        file_bytes = file.read()
         if not file_bytes:
             raise VideoStreamingError("Empty file provided")
 

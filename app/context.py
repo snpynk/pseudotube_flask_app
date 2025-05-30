@@ -6,7 +6,7 @@ from .oauth import OAuthProviderManager
 
 from .gae import GAE
 
-login_manager = LoginManager()
+from .storage import StorageManager
 
 login_manager = LoginManager()
 
@@ -15,3 +15,5 @@ db = SQLAlchemy()
 gae = GAE()
 
 provider_manager = OAuthProviderManager(gae.OAUTH2_PROVIDERS)
+
+storage_manager = StorageManager(gae.GCP_BUCKET_NAME, gae.GCP_BUCKET_CREDENTIALS)

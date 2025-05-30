@@ -1,10 +1,11 @@
 import secrets
+import uuid
 
 from flask import Flask, redirect, render_template, request, url_for
 from flask_login import current_user, login_user, logout_user
 
-from . import video, storage
-from .context import gae, db, login_manager, provider_manager
+from . import video
+from .context import db, login_manager, provider_manager, storage_manager
 from .models.user import User
 
 
@@ -81,9 +82,14 @@ def create_app():
                 timeout=5,
             )
 
-        # Bucket logic
+        video_hash = uuid.uuid4().hex
 
-        return "Video uploaded successfully", 200
+        cloud_uri = storage_manager.upload_video(
+            file_bytes,
+            f"videos/{video_hash}.{content_type.split('/')[-1]}",
+        )
+
+        return cloud_uri, 200
 
     @app.route("/video/<video_id>", methods=["GET"])
     def route_video(video_id):

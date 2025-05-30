@@ -6,7 +6,7 @@ from werkzeug.datastructures import FileStorage
 
 ALLOWED_VIDEO_CODECS = {"h264", "hevc", "h265", "avc", "av1"}
 ALLOWED_AUDIO_CODECS = {"aac", "opus"}
-ALLOWED_CONTAINERS = {"mp4", "mov", "webm"}
+ALLOWED_CONTAINERS = {"mp4", "webm"}
 
 
 class VideoStreamInfo(TypedDict):

@@ -59,9 +59,17 @@ def create_app():
     def route_logout():
         if current_user.is_authenticated:
             logout_user()
-            return "Logged out successfully", 200
+            return render_template(
+                "redirect.html",
+                redirect_url=url_for("route_index"),
+                message="You have been logged out.",
+            )
 
-        return "You are not logged in", 400
+        return render_template(
+            "redirect.html",
+            redirect_url=url_for("route_index"),
+            message="You are not logged in.",
+        )
 
     @app.route("/authorize/<provider>")
     def route_oauth2_authorize(provider):

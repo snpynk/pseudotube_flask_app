@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+		<title>PSEUDOTUBE</title>
+	</head>
+	<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='common.css') }}">
+	<body>
+		<!-- Redirect Section -->
+		<div class="section">
+			<h2>{{ message }}</h2>
+			<p id="countdown-pg">You will be redirected in 3 seconds. If not, click <a href="{{ redirect_url }}">here</a>.</p>
+		</div>
+		<script>
+		// Countdown to redirect
+		var countdown = document.getElementById("countdown-pg");
+		var seconds = 3;
+
+		var interval = setInterval(function() {
+			if (seconds > 0) {
+				console.log(countdown.innerHTML);
+				countdown.innerHTML = countdown.innerHTML.replace(/(\d+)/, seconds);
+				seconds--;
+			} else {
+				clearInterval(interval);
+				window.location.href = "{{ redirect_url }}";
+			}
+		}, 1000);
+		</script>
+	</body>
+</html>

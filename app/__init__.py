@@ -3,8 +3,8 @@ import secrets
 from flask import Flask, redirect, render_template, request, url_for
 from flask_login import current_user, login_user, logout_user
 
-from . import video
-from .context import db, login_manager, provider_manager
+from . import video, storage
+from .context import gae, db, login_manager, provider_manager
 from .models.user import User
 
 
@@ -18,6 +18,7 @@ def create_app():
     db.init_app(app)
 
     provider_manager.setup()
+    gae.setup()
 
     @login_manager.user_loader
     def user_loader(user_id):

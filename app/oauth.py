@@ -1,6 +1,6 @@
 import secrets
 from json import load, loads
-from os import path
+import os
 from typing import TypedDict
 from urllib.parse import urlencode
 
@@ -21,15 +21,18 @@ class OAuthProviderManager:
         self.providers = {}
 
     def setup(self):
-        google_oauth_cred_filename = "client_secrets.apps.googleusercontent.com.json"
+        google_oauth_cred_filename = "oauth2.creds.json"
 
-        if not path.exists(google_oauth_cred_filename):
-            oauth2_providers = self.get_oath2_providers_secret()
-            google_provider_data = loads(oauth2_providers)["web"]
-
-        else:
+        if os.path.exists(google_oauth_cred_filename):
             with open(google_oauth_cred_filename, "r") as f:
-                google_provider_data = load(f)["web"]
+                os.environ["PSEUDOTUBE_OAUTH2_PROVIDERS"] = f"[{f.read()}]"
+
+        google_provider_data = self.get_oath2_providers_secret()[0].get("web")
+
+        if not google_provider_data:
+            raise ValueError(
+                "Google OAuth2 credentials not found in the secret manager."
+            )
 
         if not google_provider_data:
             raise ValueError("Google OAuth2 credentials not found in the file.")
@@ -137,8 +140,5 @@ class OAuthProviderManager:
         return name in self.providers
 
     @staticmethod
-    def get_oath2_providers_secret():
-        client = secretmanager.SecretManagerServiceClient()
-        name = "projects/pseudotube/secrets/oauth2_providers/versions/latest"
-        response = client.access_secret_version(request={"name": name})
-        return response.payload.data.decode("UTF-8")
+    def get_oath2_providers_secret() -> list[dict]:
+        return loads(os.getenv("PSEUDOTUBE_OAUTH2_PROVIDERS", "{}"))

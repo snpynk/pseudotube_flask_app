@@ -2,6 +2,9 @@ runtime: python313
 
 entrypoint: gunicorn -b :$PORT app:app
 
+environment:
+  IS_GAE: true
+
 handlers:
   - url: /.*
     script: auto

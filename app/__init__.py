@@ -3,6 +3,7 @@ import secrets
 from flask import Flask, redirect, render_template, request, url_for
 from flask_login import current_user, login_user, logout_user
 
+from . import video
 from .context import db, login_manager, provider_manager
 from .models.user import User
 
@@ -32,20 +33,41 @@ def create_app():
 
     @app.route("/upload", methods=["POST"])
     def route_upload():
-        dom_video_input_name = "video_file"
+        if not (request and request.files and "file-upload" in request.files.keys()):
+            return render_template(
+                "redirect.html",
+                redirect_url=url_for("route_index"),
+                message="No file part in the request.",
+                timeout=5,
+            )
 
-        if not (
-            request and request.files and dom_video_input_name in request.files.keys()
-        ):
-            return "No file part in the request", 400
-
-        file = request.files[dom_video_input_name]
+        file = request.files["file-upload"]
 
         if file.filename == "":
-            return "File name is empty", 400
+            return render_template(
+                "redirect.html",
+                redirect_url=url_for("route_index"),
+                message="File is empty",
+                timeout=5,
+            )
 
-        if not file:
-            return "No file selected", 400
+        if not file.content_type.startswith("video/"):
+            return render_template(
+                "redirect.html",
+                redirect_url=url_for("route_index"),
+                message="File is not a video.",
+                timeout=5,
+            )
+
+        try:
+            video.validate_video_streamable(file)
+        except video.VideoStreamingError as err:
+            return render_template(
+                "redirect.html",
+                redirect_url=url_for("route_index"),
+                message=f"Video validation failed: {err}",
+                timeout=5,
+            )
 
         # Bucket logic
 

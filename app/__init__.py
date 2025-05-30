@@ -7,6 +7,7 @@ from flask_login import current_user, login_user, logout_user
 from . import video
 from .context import db, login_manager, provider_manager, storage_manager
 from .models.user import User
+from .models.video import Video
 
 
 def create_app():
@@ -84,12 +85,26 @@ def create_app():
 
         video_hash = uuid.uuid4().hex
 
-        cloud_uri = storage_manager.upload_video(
+        video_uri = storage_manager.upload_video(
             file_bytes,
             f"videos/{video_hash}.{content_type.split('/')[-1]}",
         )
 
-        return cloud_uri, 200
+        thumbnail_uri = storage_manager.upload_thumbnail(
+            video.generate_thumbnail(file_bytes),
+            f"thumbnails/{video_hash}.jpg",
+        )
+
+        db.session.add(
+            Video(
+                title=request.form.get("title", "Untitled Video"),
+                description=request.form.get("description", None),
+                hash_video=video_hash,
+                user_id=current_user.id,
+            )
+        )
+
+        return video_uri, 200
 
     @app.route("/video/<video_id>", methods=["GET"])
     def route_video(video_id):

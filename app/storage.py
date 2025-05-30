@@ -42,3 +42,14 @@ class StorageManager:
             return str(path)
         except Exception as e:
             raise RuntimeError(f"Failed to upload video: {e}")
+
+    def upload_thumbnail(self, file_bytes: bytes, file_name: str) -> str:
+        if not isinstance(self.client, GSClient):
+            raise ValueError("Google Cloud Storage client is not initialized.")
+
+        try:
+            path = self.client.CloudPath(f"gs://{self.bucket_name}/{file_name}")
+            path.write_bytes(file_bytes)
+            return str(path)
+        except Exception as e:
+            raise RuntimeError(f"Failed to upload thumbnail: {e}")

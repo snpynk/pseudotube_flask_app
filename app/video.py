@@ -119,3 +119,34 @@ def validate_video_streamable(file_bytes: bytes) -> None:
 def has_faststart(file_bytes: bytes) -> bool:
     # TODO: Implement actual faststart checking
     return True
+
+
+def generate_thumbnail(file_bytes: bytes, ts=3) -> bytes:
+    process = Popen(
+        [
+            "ffmpeg",
+            "-ss",
+            str(ts),
+            "-i",
+            "-",
+            "-frames:v",
+            "1",
+            "-q:v",
+            "15",
+            "-f",
+            "image2",
+            "pipe:1",
+        ],
+        stdin=PIPE,
+        stdout=PIPE,
+        stderr=PIPE,
+    )
+
+    output, err = process.communicate(input=file_bytes)
+
+    if process.returncode != 0:
+        raise RuntimeError(
+            f"ffprobe failed with return code {process.returncode}.\n\n{err.decode('utf-8')}"
+        )
+
+    return output

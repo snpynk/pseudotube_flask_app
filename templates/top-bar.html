@@ -7,12 +7,20 @@
 		<input type="text" placeholder="Search...">
 	</div>
 	<div class="right-section">
-		<button class="upload-btn">Upload</button>
-		<p>
 		{% if user.is_authenticated %}
-				<a class="account-btn" href="{{ url_for('route_logout') }}">{{ user.email }}</a>
+		<button class="pill-button red">Upload</button>
+		{% endif %}
+		<p>
+			{% if user.is_authenticated %}
+		<div class="button-group">
+			<p class="pill-button gray">
+				<img src={{user.picture}} class="picture">
+				{{user.email}}
+			</p>
+			<a href="{{ url_for('route_logout') }}" class="pill-button black" title="Logout">⍈</a>
+		</div>
 		{% else %}
-				<a class="account-btn" href="{{ url_for('route_oauth2_authorize', provider='google') }}">Login</a>
+		<a href="{{ url_for('route_oauth2_authorize', provider='google') }}" class="pill-button red" title="Login">Login</a>
 		{% endif %}
 		</p>
 	</div>

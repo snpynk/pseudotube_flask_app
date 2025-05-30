@@ -1,110 +1,175 @@
+/* Global Reset & Base */
 * {
-	box-sizing: border-box;
-	margin: 0;
-	padding: 0;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-	font-family: Arial, sans-serif;
-	background-color: #f9f9f9;
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+  color: #333;
+  line-height: 1.5;
 }
 
 /* Top Bar */
 .top-bar {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	background-color: #ffffff;
-	padding: 10px 20px;
-	border-bottom: 1px solid #ccc;
-	position: sticky;
-	top: 0;
-	z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #fff;
+  padding: 12px 24px;
+  border-bottom: 1px solid #ccc;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
 .logo {
-	font-size: 24px;
-	font-weight: bold;
-	color: #ff0000;
-	text-decoration: none;
+  font-size: 24px;
+  font-weight: bold;
+  color: #ff0000;
+  text-decoration: none;
 }
 
 .search-bar {
-	flex: 1;
-	margin: 0 20px;
+  flex: 1;
+  margin: 0 24px;
 }
 
 .search-bar input {
-	width: 100%;
-	padding: 8px 12px;
-	font-size: 16px;
-	border: 1px solid #ccc;
-	border-radius: 20px;
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 9999px;
+  background-color: #fff;
 }
 
+/* Pill Button Base */
+.pill-button {
+  padding: 10px 20px;
+  border-radius: 9999px;
+  font-weight: bold;
+  font-size: 14px;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+/* Pill Button Variants */
+.pill-button.red {
+  background-color: #ff0000;
+  color: #fff;
+}
+
+.pill-button.red:hover {
+  background-color: #e00000;
+}
+
+.pill-button.black {
+  background-color: #000;
+  color: #fff;
+}
+
+.pill-button.black:hover {
+  background-color: #222;
+}
+
+.pill-button.gray {
+  background-color: #f0f0f0;
+  color: #000;
+}
+
+.pill-button.gray:hover {
+  background-color: #e0e0e0;
+}
+
+/* Right Section */
 .right-section {
-	display: flex;
-	align-items: center;
-	gap: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.upload-btn {
-	background-color: #ff0000;
-	color: #fff;
-	border: none;
-	padding: 8px 16px;
-	border-radius: 4px;
-	cursor: pointer;
-	font-weight: bold;
-}
-
-.account-btn {
-	font-size: 10px;
-	max-width: 10px;
-	white-space: nowrap;  
-	text-overflow: ellipsis;
-	overflow: hidden;
-	background-color: #000000;
-	color: #fff;
-	border: none;
-	padding: 8px 16px;
-	border-radius: 4px;
-	cursor: pointer;
-}
-
-/* Video Grid Section */
+/* Section Layout */
 .section {
-	margin: 30px 20px;
+  margin: 40px 24px;
 }
 
 .section h2 {
-	margin-bottom: 15px;
-	font-size: 20px;
-	color: #222;
+  margin-bottom: 16px;
+  font-size: 20px;
+  color: #222;
 }
 
+/* Video Grid */
 .video-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-	gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
 }
 
 .video-card {
-	background-color: #fff;
-	border-radius: 8px;
-	overflow: hidden;
-	box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  background-color: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.2s;
+}
+
+.video-card:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .video-thumb {
-	width: 100%;
-	height: 120px;
-	background-color: #ddd;
+  width: 100%;
+  height: 120px;
+  background-color: #ddd;
 }
 
 .video-title {
-	padding: 10px;
-	font-size: 14px;
-	font-weight: bold;
-	color: #333;
+  padding: 12px;
+  font-size: 15px;
+  font-weight: bold;
+  color: #333;
+}
+
+/* Button Group */
+.button-group {
+  display: inline-flex;
+  border: 1px solid #ccc;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.button-group > * {
+  composes: pill-button gray;
+  border: none;
+  border-radius: 0;
+  flex: 1;
+}
+
+.button-group > *:first-child {
+  border-top-left-radius: 9999px;
+  border-bottom-left-radius: 9999px;
+  border-right: 1px solid #ccc;
+}
+
+.button-group > *:last-child {
+  border-top-right-radius: 9999px;
+  border-bottom-right-radius: 9999px;
+}
+
+/* Avatar inside buttons */
+.button-group .picture {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
 }

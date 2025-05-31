@@ -1,7 +1,9 @@
+import os
 import secrets
 import uuid
 
 from flask import Flask, redirect, render_template, request, url_for
+from dotenv import load_dotenv
 from flask_login import current_user, login_user, logout_user
 from sqlalchemy import func, text
 
@@ -17,7 +19,20 @@ def create_app():
     app = Flask(__name__, template_folder="../templates", static_folder="../static")
     app.secret_key = secrets.token_urlsafe(16)
 
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///project.db"
+    load_dotenv()
+
+    DB_USER = os.getenv("PSEUDOTUBE_DB_USER", "root")
+    DB_PASS = os.getenv("PSEUDOTUBE_DB_PASS", "password")
+    CONNECTION_PREFIX = os.getenv("PSEUDOTUBE_DB_CONN_PREFIX", "")
+    CONNECTION_SUFFIX = os.getenv(
+        "PSEUDOTUBE_DB_CONN_SUFFIX", "pseudotube-db?unix_socket=/cloudsql/pseudotube-db"
+    )
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = (
+        f"mysql+pymysql://{DB_USER}:{DB_PASS}@{CONNECTION_PREFIX}/{CONNECTION_SUFFIX}"
+    )
+
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     db.init_app(app)
 

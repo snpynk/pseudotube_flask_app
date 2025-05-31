@@ -21,3 +21,6 @@ __pycache__/
 *.creds.json
 .venv
 instance/
+
+# Ignore the local environment file
+.env

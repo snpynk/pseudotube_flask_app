@@ -23,7 +23,7 @@ class VideoStreamingError(Exception):
     pass
 
 
-def probe_ffprobe_process(file_bytes: bytes, stream) -> tuple[bytes, bytes]:
+def probe_ffprobe_process(file_path: bytes, stream) -> tuple[bytes, bytes]:
     process = Popen(
         [
             "ffprobe",
@@ -38,14 +38,14 @@ def probe_ffprobe_process(file_bytes: bytes, stream) -> tuple[bytes, bytes]:
             "-of",
             "json",
             "-i",
-            "-",
+            file_path,
         ],
         stdin=PIPE,
         stdout=PIPE,
         stderr=PIPE,
     )
 
-    output, err = process.communicate(input=file_bytes)
+    output, err = process.communicate()
     if process.returncode != 0:
         raise RuntimeError(
             f"ffprobe failed with return code {process.returncode}.\n\n{err.decode('utf-8')}"
@@ -54,9 +54,9 @@ def probe_ffprobe_process(file_bytes: bytes, stream) -> tuple[bytes, bytes]:
     return output, err
 
 
-def probe_video(file_bytes: bytes) -> VideoFormatInfo:
-    output_probe_video, err = probe_ffprobe_process(file_bytes, "v")
-    output_probe_audio, err = probe_ffprobe_process(file_bytes, "a")
+def probe_video(file_path: str) -> VideoFormatInfo:
+    output_probe_video, err = probe_ffprobe_process(file_path, "v")
+    output_probe_audio, err = probe_ffprobe_process(file_path, "a")
 
     info = loads(output_probe_video.decode("utf-8"))
     audio_streams = loads(output_probe_audio.decode("utf-8")).get("streams", [])
@@ -77,12 +77,12 @@ def validate_video_duration(info: VideoFormatInfo) -> None:
         raise VideoStreamingError("Video duration is too short.")
 
 
-def validate_video_streamable(file_bytes: bytes) -> None:
+def validate_video_streamable(file_path: str) -> None:
     try:
-        if not file_bytes:
-            raise VideoStreamingError("Empty file provided")
+        if not file_path:
+            raise ValueError("File path cannot be empty.")
 
-        info = probe_video(file_bytes)
+        info = probe_video(file_path)
 
         format_name = info["format"].get("format_name", "").lower()
         if not any(fmt in format_name for fmt in ALLOWED_CONTAINERS):
@@ -105,9 +105,6 @@ def validate_video_streamable(file_bytes: bytes) -> None:
         if not has_valid_audio:
             raise VideoStreamingError("Unsupported audio codec")
 
-        if "mp4" in format_name or "mov" in format_name:
-            if not has_faststart(file_bytes):
-                raise VideoStreamingError("Missing faststart/moov atom")
 
         validate_video_duration(info)
 
@@ -116,25 +113,50 @@ def validate_video_streamable(file_bytes: bytes) -> None:
 
 
 # WE SHOULD REALLY USE TO TRANSCODING!!!!!!!!!!!!!
-def has_faststart(file_bytes: bytes) -> bool:
-    # TODO: Implement actual faststart checking
-    return True
+def put_faststart(file_path: str) -> bool:
+    file_extension = file_path.split(".")[-1].lower()
+    file_name = file_path.replace(f".{file_extension}", "")
+
+    process = Popen(
+        [
+            "ffmpeg",
+            "-i",
+            file_path,
+            "-c",
+            "copy",
+            "-movflags",
+            "+faststart",
+            f"{file_name}_fs.{file_extension}",
+        ],
+        stdin=PIPE,
+        stdout=PIPE,
+        stderr=PIPE,
+    )
+
+    output, err = process.communicate()
+
+    if process.returncode != 0:
+        raise RuntimeError(
+            f"ffmpeg failed with return code {process.returncode}.\n\n{err.decode('utf-8')}"
+        )
 
 
-def generate_thumbnail(file_bytes: bytes, ts=3) -> bytes:
+def generate_thumbnail(file_path: str, ts=1) -> bytes:
     process = Popen(
         [
             "ffmpeg",
             "-ss",
             str(ts),
             "-i",
-            "-",
+            file_path,
             "-frames:v",
             "1",
             "-q:v",
             "15",
             "-f",
             "image2",
+            "-vcodec",
+            "mjpeg",
             "pipe:1",
         ],
         stdin=PIPE,
@@ -142,7 +164,7 @@ def generate_thumbnail(file_bytes: bytes, ts=3) -> bytes:
         stderr=PIPE,
     )
 
-    output, err = process.communicate(input=file_bytes)
+    output, err = process.communicate()
 
     if process.returncode != 0:
         raise RuntimeError(

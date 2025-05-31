@@ -32,14 +32,17 @@ class StorageManager:
 
         self.client = GSClient(credentials=self.credentials)
 
-    def upload_video(self, file_bytes: bytes, file_name: str) -> str:
+    def upload_video(self, file_path: str, file_name: str) -> str:
         if not isinstance(self.client, GSClient):
             raise ValueError("Google Cloud Storage client is not initialized.")
 
         try:
             path = self.client.CloudPath(f"gs://{self.bucket_name}/{file_name}")
-            path.write_bytes(file_bytes)
-            return str(path)
+            path.upload_from(file_path)
+
+            return str(
+                "https://storage.googleapis.com/" + path.as_uri().replace("gs://", "")
+            )
         except Exception as e:
             raise RuntimeError(f"Failed to upload video: {e}")
 
@@ -50,6 +53,8 @@ class StorageManager:
         try:
             path = self.client.CloudPath(f"gs://{self.bucket_name}/{file_name}")
             path.write_bytes(file_bytes)
-            return str(path)
+            return str(
+                "https://storage.googleapis.com/" + path.as_uri().replace("gs://", "")
+            )
         except Exception as e:
             raise RuntimeError(f"Failed to upload thumbnail: {e}")

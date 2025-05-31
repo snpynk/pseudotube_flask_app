@@ -71,10 +71,15 @@ def create_app():
                 timeout=5,
             )
 
-        file_bytes = file.read()
+        video_hash = uuid.uuid4().hex
+        file_extension = os.path.splitext(file.filename)[-1]
+        tmp_file_path = f"instance/{video_hash}.{file_extension}"
+
+        with open(tmp_file_path, "wb") as f:
+            f.write(file.read())
 
         try:
-            video.validate_video_streamable(file_bytes)
+            video.validate_video_streamable(tmp_file_path)
         except video.VideoStreamingError as err:
             return render_template(
                 "redirect.html",
@@ -83,15 +88,13 @@ def create_app():
                 timeout=5,
             )
 
-        video_hash = uuid.uuid4().hex
-
         video_uri = storage_manager.upload_video(
-            file_bytes,
+            tmp_file_path,
             f"videos/{video_hash}.{content_type.split('/')[-1]}",
         )
 
         thumbnail_uri = storage_manager.upload_thumbnail(
-            video.generate_thumbnail(file_bytes),
+            video.generate_thumbnail(tmp_file_path),
             f"thumbnails/{video_hash}.jpg",
         )
 
@@ -104,6 +107,8 @@ def create_app():
             )
         )
 
+
+        os.remove(tmp_file_path)
         return video_uri, 200
 
     @app.route("/video/<video_id>", methods=["GET"])

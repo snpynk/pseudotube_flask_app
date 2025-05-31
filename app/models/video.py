@@ -15,8 +15,10 @@ class Video(db.Model):
     hidden: Mapped[int] = mapped_column(
         Integer(), nullable=False, default=0
     )  # (0) public, (1) unlisted
-    hash_video: Mapped[str] = mapped_column(String(64), nullable=False)
-    hash_thumbnail: Mapped[str] = mapped_column(String(64), nullable=False)
+
+    hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    uri: Mapped[str] = mapped_column(String(128), nullable=False)
+    thumbnail_uri: Mapped[str] = mapped_column(String(128), nullable=False)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, default=datetime.now
@@ -26,12 +28,16 @@ class Video(db.Model):
         self,
         title: str,
         description: str | None,
-        hash_video: str,
+        hash: str,
+        uri: str,
+        thumbnail_uri: str,
         user_id: int,
         hidden: int = 0,
     ):
         self.title = title
         self.description = description
-        self.hash_video = hash_video
+        self.hash = hash
+        self.uri = uri
+        self.thumbnail_uri = thumbnail_uri
         self.user_id = user_id
         self.hidden = hidden

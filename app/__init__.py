@@ -100,13 +100,16 @@ def create_app():
 
         db.session.add(
             Video(
-                title=request.form.get("title", "Untitled Video"),
-                description=request.form.get("description", None),
-                hash_video=video_hash,
+                title=request.form.get("video-title", "Untitled Video"),
+                description=request.form.get("video-description", None),
+                hash=video_hash,
+                uri=video_uri,
+                thumbnail_uri=thumbnail_uri,
                 user_id=current_user.id,
             )
         )
 
+        db.session.commit()
 
         os.remove(tmp_file_path)
         return video_uri, 200

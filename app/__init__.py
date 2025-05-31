@@ -2,8 +2,8 @@ import os
 import secrets
 import uuid
 
-from flask import Flask, redirect, render_template, request, url_for
 from dotenv import load_dotenv
+from flask import Flask, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_user, logout_user
 from sqlalchemy import func, text
 
@@ -202,11 +202,15 @@ def create_app():
         db.session.commit()
 
         os.remove(tmp_file_path)
-        return video_uri, 200
 
-    @app.route("/video/<video_id>", methods=["GET"])
-    def route_video(video_id):
-        return f"Video ID: {video_id}"
+        return jsonify({"redirect_url": url_for("route_watch", video_id=video_hash)})
+
+    @app.route("/watch/<video_id>", methods=["GET"])
+    def route_watch(video_id):
+        return render_template(
+            "watch.html",
+            user=current_user,
+        )
 
     @app.route("/logout")
     def route_logout():

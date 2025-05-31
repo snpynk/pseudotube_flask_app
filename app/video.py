@@ -105,6 +105,10 @@ def validate_video_streamable(file_path: str) -> None:
         if not has_valid_audio:
             raise VideoStreamingError("Unsupported audio codec")
 
+        try:
+            put_faststart(file_path)
+        except RuntimeError:
+            raise VideoStreamingError("Failed to apply faststart to the video file.")
 
         validate_video_duration(info)
 

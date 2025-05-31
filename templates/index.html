@@ -10,38 +10,76 @@
 
 		{% include 'top-bar.html' %}
 
-		<!-- Most Watched Section -->
-		<section class="section">
-			<h2 class="section-title">Most Watched</h2>
-			<div class="grid">
-				<div class="card">
-					<div class="card-thumb"></div>
-					<div class="card-title">Video Title 1</div>
+		<!-- Row 1 -->
+		<div class="section-row">
+			<section class="section">
+				<h2 class="section-title">Trending</h2>
+				<div class="grid">
+					{% for video in trending %}
+					<div class="card">
+						<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
+						<div class="card-title">{{ video.title }}</div>
+					{% endfor %}
 				</div>
-			</div>
-		</section>
+			</section>
 
-		<!-- Trending Section -->
-		<section class="section">
-			<h2 class="section-title">Trending</h2>
-			<div class="grid">
-				<div class="card">
-					<div class="card-thumb"></div>
-					<div class="card-title">Video Title 2</div>
+			<section class="section">
+				<h2 class="section-title">Most Liked</h2>
+				<div class="grid">
+					{% for video in most_liked %}
+					<div class="card">
+						<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
+						<div class="card-title">{{ video.title }}</div>
+					{% endfor %}
 				</div>
-			</div>
-		</section>
+			</section>
+		</div>
 
-		<!-- Random Section -->
-		<section class="section">
-			<h2 class="section-title">Random</h2>
-			<div class="grid">
-				<div class="card">
-					<div class="card-thumb"></div>
-					<div class="card-title">Video Title 3</div>
+		<div class="section-row">
+			<section class="section">
+				<h2 class="section-title">Most recent</h2>
+				<div class="grid">
+					{% for video in most_recent %}
+					<div class="card">
+						<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
+						<div class="card-title">{{ video.title }}</div>
+					{% endfor %}
 				</div>
-			</div>
-		</section>
+			</section>
 
+			<section class="section">
+				<h2 class="section-title">Most Watched</h2>
+				<div class="grid">
+					{% for video in most_watched %}
+					<div class="card">
+						<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
+						<div class="card-title">{{ video.title }}</div>
+					{% endfor %}
+				</div>
+			</section>
+		</div>
+
+		<div class="section-row">
+			<section class="section">
+				<h2 class="section-title">Random</h2>
+				<div class="grid">
+					{% for video in random_videos %}
+					<div class="card">
+						<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
+						<div class="card-title">{{ video.title }}</div>
+					{% endfor %}
+				</div>
+			</section>
+			<section class="section">
+				<h2 class="section-title">Your Videos</h2>
+				<div class="grid">
+					{% for video in user_videos %}
+					<div class="card">
+						<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
+						<div class="card-title">{{ video.title }}</div>
+					{% endfor %}
+				</div>
+			</section>
+		</div>
 	</body>
 </html>

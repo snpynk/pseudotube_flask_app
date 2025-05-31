@@ -183,7 +183,7 @@ body {
 /* Grid Layout */
 .grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 	gap: 20px;
 }
 
@@ -288,4 +288,42 @@ body {
   display: flex;
   align-items: center;
   gap: 12px; /* space between pill group and upload button */
+}
+
+.section {
+	flex: 1;
+}
+
+.section-row {
+	display: flex;
+	justify-content: center;
+	gap: 40px;
+	margin: 40px 0;
+	flex-wrap: wrap; /* for small screens */
+}
+
+.section {
+	flex: 1;
+	max-width: 600px;
+}
+
+#upload-progress {
+	height: 10px;
+	border-radius: 9999px;
+	appearance: none;
+}
+
+#upload-progress::-webkit-progress-bar {
+	background-color: #eee;
+	border-radius: 9999px;
+}
+
+#upload-progress::-webkit-progress-value {
+	background-color: #ff0000;
+	border-radius: 9999px;
+}
+
+#upload-status {
+	margin-top: 8px;
+	text-align: center;
 }

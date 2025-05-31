@@ -3,11 +3,14 @@ import uuid
 
 from flask import Flask, redirect, render_template, request, url_for
 from flask_login import current_user, login_user, logout_user
+from sqlalchemy import func, text
 
 from . import video
 from .context import db, login_manager, provider_manager, storage_manager
+from .models.likes import Likes
 from .models.user import User
 from .models.video import Video
+from .models.views import Views
 
 
 def create_app():
@@ -28,7 +31,79 @@ def create_app():
 
     @app.route("/")
     def route_index():
-        return render_template("index.html", user=current_user)
+        most_watched = (
+            db.session.execute(
+                db.select(Video)
+                .order_by(db.desc(db.func.count(Views.id)))
+                .join(Views, Video.id == Views.video_id)
+                .group_by(Video.id)
+                .limit(4)
+            )
+            .scalars()
+            .all()
+        )
+
+        most_liked = (
+            db.session.execute(
+                db.select(Video)
+                .order_by(db.desc(db.func.count(Likes.id)))
+                .join(Likes, Video.id == Likes.video_id)
+                .group_by(Video.id)
+                .limit(4)
+            )
+            .scalars()
+            .all()
+        )
+
+        trending = (
+            db.session.execute(
+                db.select(Video)
+                .join(Views, Video.id == Views.video_id)
+                .where(Views.created_at >= text("NOW() - INTERVAL 1 DAY"))
+                .group_by(Video.id)
+                .order_by(func.count(Views.id).desc())
+                .limit(4)
+            )
+            .scalars()
+            .all()
+        )
+
+        random_videos = (
+            db.session.execute(db.select(Video).order_by(db.func.random()).limit(4))
+            .scalars()
+            .all()
+        )
+
+        most_recent = (
+            db.session.execute(db.select(Video).order_by(db.desc(Video.id)).limit(4))
+            .scalars()
+            .all()
+        )
+
+        user_videos = []
+
+        if current_user.is_authenticated:
+            user_videos = (
+                db.session.execute(
+                    db.select(Video)
+                    .where(Video.user_id == current_user.id)
+                    .order_by(db.desc(Video.id))
+                    .limit(4)
+                )
+                .scalars()
+                .all()
+            )
+
+        return render_template(
+            "index.html",
+            user=current_user,
+            most_watched=most_watched,
+            most_liked=most_liked,
+            trending=trending,
+            random_videos=random_videos,
+            user_videos=user_videos,
+            most_recent=most_recent,
+        )
 
     @app.route("/search", methods=["GET", "POST"])
     def route_search():

@@ -46,10 +46,13 @@
 								<textarea id="video-desc" name="video-desc" class="textarea" rows="4" required></textarea>
 							</div>
 
-							<label for="file-upload" class="upload-area">
+							<label for="file-upload" class="upload-area" id="upload-area">
 								<input type="file" id="file-upload" name="file-upload" hidden required />
-								<span>Click or drag file here to upload</span>
+								<span id="upload-text">Click or drag file here to upload</span>
 							</label>
+
+							<progress id="upload-progress" value="0" max="100" style="width: 100%; display: none;"></progress>
+							<p id="upload-status" style="font-size: 14px; color: #555;"></p>
 
 							<button type="submit" class="btn red">Submit</button>
 						</form>
@@ -84,6 +87,8 @@
 				});
 
 				const uploadArea = document.querySelector('.upload-area');
+				const fileInput = document.getElementById('file-upload');
+				const uploadText = document.getElementById('upload-text');
 
 				uploadArea.addEventListener('dragover', (e) => {
 					e.preventDefault();
@@ -97,9 +102,70 @@
 				uploadArea.addEventListener('drop', (e) => {
 					e.preventDefault();
 					uploadArea.classList.remove('dragging');
-					document.getElementById('file-upload').files = e.dataTransfer.files;
+					fileInput.files = e.dataTransfer.files;
+					uploadText.textContent = e.dataTransfer.files[0].name;
+				});
+
+				fileInput.addEventListener('change', () => {
+					if (fileInput.files.length > 0) {
+						uploadText.textContent = fileInput.files[0].name;
+					} else {
+						uploadText.textContent = 'Click or drag file here to upload';
+					}
 				});
 			}
+
+			document.addEventListener('DOMContentLoaded', function () {
+				const form = document.querySelector('.upload-form');
+				const progressBar = document.getElementById('upload-progress');
+				const statusText = document.getElementById('upload-status');
+
+				form.addEventListener('submit', function (e) {
+					e.preventDefault(); // Stop regular form submission
+
+					const formData = new FormData(form);
+
+					const xhr = new XMLHttpRequest();
+					xhr.open('POST', form.action, true);
+
+					// Show progress bar
+					progressBar.style.display = 'block';
+					statusText.textContent = 'Uploading...';
+
+					// Update progress bar
+					xhr.upload.onprogress = function (e) {
+						if (e.lengthComputable) {
+							const percent = (e.loaded / e.total) * 100;
+							progressBar.value = percent;
+							statusText.textContent = `Uploading... ${Math.round(percent)}%`;
+						}
+					};
+
+					// Handle complete
+					xhr.onload = function () {
+						if (xhr.status === 200) {
+							progressBar.value = 100;
+							statusText.textContent = 'Upload complete! Redirecting...';
+
+							const response = JSON.parse(xhr.responseText);
+							if (response.redirect_url) {
+								setTimeout(() => {
+									window.location.href = response.redirect_url;
+								}, 1000);
+							}
+						} else {
+							statusText.textContent = 'Upload failed. Please try again.';
+						}
+					};
+
+					// Handle errors
+					xhr.onerror = function () {
+						statusText.textContent = 'An error occurred during upload.';
+					};
+
+					xhr.send(formData);
+				});
+			});
 		</script>
 	</body>
 </html>

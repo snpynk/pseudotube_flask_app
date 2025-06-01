@@ -1,0 +1,36 @@
+{% if user.is_authenticated %}
+<!-- Upload Button -->
+<button id="upload-button" class="btn red">Upload</button>
+
+<!-- Upload Modal -->
+<div class="modal-overlay">
+	<button id="upload-modal-close-button" class="btn gray modal-close">&times;</button>
+
+	<div class="modal">
+		<h2 class="modal-title">Upload File</h2>
+		<p class="modal-description">Please choose a file to upload. You can also drag and drop it below.</p>
+
+		<form class="upload-form" action="{{ url_for('route_upload') }}" method="post" enctype="multipart/form-data">
+			<div class="form-group">
+				<label for="video-title">Title</label>
+				<input type="text" id="video-title" name="video-title" class="input-text" required>
+			</div>
+
+			<div class="form-group">
+				<label for="video-desc">Description</label>
+				<textarea id="video-desc" name="video-desc" class="textarea" rows="4" required></textarea>
+			</div>
+
+			<label for="file-upload" class="upload-area" id="upload-area">
+				<input type="file" id="file-upload" name="file-upload" hidden required />
+				<span id="upload-text">Click or drag file here to upload</span>
+			</label>
+
+			<progress id="upload-progress" value="0" max="100" style="width: 100%; display: none;"></progress>
+			<p id="upload-status" style="font-size: 14px; color: #555;"></p>
+
+			<button type="submit" class="btn red">Submit</button>
+		</form>
+	</div>
+</div>
+{% endif %}

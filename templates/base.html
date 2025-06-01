@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+		<title>{% block title %}{% endblock %} - PSEUDOTUBE</title>
+		<link rel="stylesheet" href="{{ url_for('static', filename='common.css') }}">
+		{% block head %}
+		{% endblock %}
+	</head>
+	<body>
+		<header class="top-bar">
+			<a href="/" class="logo">PSEUDOTUBE</a>
+
+			<div class="text-bar">
+				<input id="search-bar-input" type="text" class="input-text" placeholder="Search...">
+			</div>
+
+			<div class="right-section">
+				{% if user.is_authenticated %}
+
+				{% include "upload_modal.html" %}
+
+				<div class="btn-group">
+					<p class="pill-button gray">
+					<img src={{user.picture}} class="picture">
+					{{user.email}}
+					</p>
+					<a href="{{ url_for('route_logout') }}" class="pill-button black" title="Logout">⍈</a>
+				</div>
+
+				{% else %}
+				<a href="{{ url_for('route_oauth2_authorize', provider='google') }}" class="btn red" title="Login">Login</a>
+				{% endif %}
+			</div>
+		</header>
+
+		{% block content %}{% endblock %}
+		{% block scripts %}{% endblock %}
+
+		<script>
+		document.getElementById("search-bar-input")?.addEventListener('keypress', function (event) {
+			if (event.key === 'Enter') {
+				const query = this.value;
+				if (query) {
+					window.location.href = `/search?query=${encodeURIComponent(query)}`;
+				}
+			}
+		});
+		</script>
+		{% if user.is_authenticated %}
+		<script src="{{ url_for('static', filename='upload.js') }}"></script>
+		{% endif %}
+	</body>
+</html>

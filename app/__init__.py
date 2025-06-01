@@ -13,6 +13,7 @@ from .models.likes import Likes
 from .models.user import User
 from .models.video import Video
 from .models.views import Views
+from .models.comment import Comment
 
 
 def create_app():
@@ -203,13 +204,79 @@ def create_app():
 
         os.remove(tmp_file_path)
 
-        return jsonify({"redirect_url": url_for("route_watch", video_id=video_hash)})
+        return jsonify({"redirect_url": url_for("route_watch", video_hash=video_hash)})
 
-    @app.route("/watch/<video_id>", methods=["GET"])
-    def route_watch(video_id):
+    @app.route("/watch/<video_hash>", methods=["GET"])
+    def route_watch(video_hash):
+        video = db.session.scalar(db.select(Video).where(Video.hash == video_hash))
+
+        if not video:
+            return render_template(
+                "redirect.html",
+                redirect_url=url_for("route_index"),
+                message="Video not found.",
+                timeout=5,
+            )
+
+        # video info with uploader info, views, likes and comment list
+        video.user = db.session.scalar(db.select(User).where(User.id == video.user_id))
+
+        video.views = (
+            db.session.execute(
+                db.select(func.count(Views.id)).where(Views.video_id == video.id)
+            ).scalar_one_or_none()
+            or 0
+        )
+
+        video.likes = (
+            db.session.execute(
+                db.select(func.count(Likes.id)).where(Likes.video_id == video.id)
+            ).scalar_one_or_none()
+            or 0
+        )
+
+        video.comments = (
+            db.session.execute(
+                db.select(Comment)
+                .where(Comment.video_id == video.id)
+                .order_by(Comment.created_at.desc())
+            )
+            .scalars()
+            .all()
+        )
+
+        video_info = {
+            "video": video,
+            "uploader": db.session.scalar(
+                db.select(User).where(User.id == video.user_id)
+            ),
+            "view_count": (
+                db.session.execute(
+                    db.select(func.count(Views.id)).where(Views.video_id == video.id)
+                ).scalar_one_or_none()
+                or 0
+            ),
+            "like_count": (
+                db.session.execute(
+                    db.select(func.count(Likes.id)).where(Likes.video_id == video.id)
+                ).scalar_one_or_none()
+                or 0
+            ),
+            # include user avatar per comment
+            "comments": (
+                db.session.execute(
+                    db.select(Comment, User)
+                    .join(User, Comment.user_id == User.id)
+                    .where(Comment.video_id == video.id)
+                    .order_by(Comment.created_at.desc())
+                ).all()
+            ),
+        }
+
         return render_template(
             "watch.html",
             user=current_user,
+            video_info=video_info,
         )
 
     @app.route("/logout")

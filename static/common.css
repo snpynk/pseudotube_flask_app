@@ -209,6 +209,15 @@ body {
 	font-weight: bold;
 	color: #333;
 }
+.card-link {
+	text-decoration: none;
+	color: inherit;
+	display: block;
+	transition: transform 0.2s;
+}
+.card-link:hover {
+	transform: translateY(-2px);
+}
 
 /* Avatar */
 .avatar {

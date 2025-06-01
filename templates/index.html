@@ -17,8 +17,11 @@
 				<div class="grid">
 					{% for video in trending %}
 					<div class="card">
-						<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
-						<div class="card-title">{{ video.title }}</div>
+						<a href="/watch/{{ video.hash }}" class="card-link">
+							<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
+							<div class="card-title">{{ video.title }}</div>
+						</a>
+					</div>
 					{% endfor %}
 				</div>
 			</section>
@@ -28,8 +31,11 @@
 				<div class="grid">
 					{% for video in most_liked %}
 					<div class="card">
-						<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
-						<div class="card-title">{{ video.title }}</div>
+						<a href="/watch/{{ video.hash }}" class="card-link">
+							<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
+							<div class="card-title">{{ video.title }}</div>
+						</a>
+					</div>
 					{% endfor %}
 				</div>
 			</section>
@@ -41,8 +47,11 @@
 				<div class="grid">
 					{% for video in most_recent %}
 					<div class="card">
-						<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
-						<div class="card-title">{{ video.title }}</div>
+						<a href="/watch/{{ video.hash }}" class="card-link">
+							<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
+							<div class="card-title">{{ video.title }}</div>
+						</a>
+					</div>
 					{% endfor %}
 				</div>
 			</section>
@@ -52,8 +61,11 @@
 				<div class="grid">
 					{% for video in most_watched %}
 					<div class="card">
-						<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
-						<div class="card-title">{{ video.title }}</div>
+						<a href="/watch/{{ video.hash }}" class="card-link">
+							<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
+							<div class="card-title">{{ video.title }}</div>
+						</a>
+					</div>
 					{% endfor %}
 				</div>
 			</section>
@@ -65,8 +77,11 @@
 				<div class="grid">
 					{% for video in random_videos %}
 					<div class="card">
-						<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
-						<div class="card-title">{{ video.title }}</div>
+						<a href="/watch/{{ video.hash }}" class="card-link">
+							<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
+							<div class="card-title">{{ video.title }}</div>
+						</a>
+					</div>
 					{% endfor %}
 				</div>
 			</section>
@@ -75,8 +90,11 @@
 				<div class="grid">
 					{% for video in user_videos %}
 					<div class="card">
-						<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
-						<div class="card-title">{{ video.title }}</div>
+						<a href="/watch/{{ video.hash }}" class="card-link">
+							<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
+							<div class="card-title">{{ video.title }}</div>
+						</a>
+					</div>
 					{% endfor %}
 				</div>
 			</section>

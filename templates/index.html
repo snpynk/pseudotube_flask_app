@@ -15,6 +15,11 @@
 			<section class="section">
 				<h2 class="section-title">Trending</h2>
 				<div class="grid">
+					{% if trending|length == 0 %}
+					<div class="card">
+						<p class="card-title">No trending videos yet.</p>
+					</div>
+					{% endif %}
 					{% for video in trending %}
 					<div class="card">
 						<a href="/watch/{{ video.hash }}" class="card-link">
@@ -29,6 +34,11 @@
 			<section class="section">
 				<h2 class="section-title">Most Liked</h2>
 				<div class="grid">
+					{% if most_liked|length == 0 %}
+					<div class="card">
+						<p class="card-title">No videos liked yet.</p>
+					</div>
+					{% endif %}
 					{% for video in most_liked %}
 					<div class="card">
 						<a href="/watch/{{ video.hash }}" class="card-link">
@@ -45,6 +55,11 @@
 			<section class="section">
 				<h2 class="section-title">Most recent</h2>
 				<div class="grid">
+					{% if most_recent|length == 0 %}
+					<div class="card">
+						<p class="card-title">No videos uploaded yet.</p>
+					</div>
+					{% endif %}
 					{% for video in most_recent %}
 					<div class="card">
 						<a href="/watch/{{ video.hash }}" class="card-link">
@@ -59,6 +74,11 @@
 			<section class="section">
 				<h2 class="section-title">Most Watched</h2>
 				<div class="grid">
+					{% if most_watched|length == 0 %}
+					<div class="card">
+						<p class="card-title">No videos have been watched yet.</p>
+					</div>
+					{% endif %}
 					{% for video in most_watched %}
 					<div class="card">
 						<a href="/watch/{{ video.hash }}" class="card-link">
@@ -75,6 +95,11 @@
 			<section class="section">
 				<h2 class="section-title">Random</h2>
 				<div class="grid">
+					{% if random_videos|length == 0 %}
+					<div class="card">
+						<p class="card-title">No random videos yet.</p>
+					</div>
+					{% endif %}
 					{% for video in random_videos %}
 					<div class="card">
 						<a href="/watch/{{ video.hash }}" class="card-link">
@@ -88,6 +113,11 @@
 			<section class="section">
 				<h2 class="section-title">Your Videos</h2>
 				<div class="grid">
+					{% if user_videos|length == 0 %}
+					<div class="card">
+						<p class="card-title">You have not uploaded any videos yet.</p>
+					</div>
+					{% endif %}
 					{% for video in user_videos %}
 					<div class="card">
 						<a href="/watch/{{ video.hash }}" class="card-link">

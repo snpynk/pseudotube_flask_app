@@ -15,6 +15,9 @@ class Video(db.Model):
     hidden: Mapped[int] = mapped_column(
         Integer(), nullable=False, default=0
     )  # (0) public, (1) unlisted
+    status: Mapped[int] = mapped_column(
+        Integer(), nullable=False, default=1
+    )  # (0) ready, (1) processing, (2) failed
 
     hash: Mapped[str] = mapped_column(String(64), nullable=False)
     uri: Mapped[str] = mapped_column(String(128), nullable=False)
@@ -33,6 +36,7 @@ class Video(db.Model):
         thumbnail_uri: str,
         user_id: int,
         hidden: int = 0,
+        status: int = 1,
     ):
         self.title = title
         self.description = description
@@ -41,3 +45,4 @@ class Video(db.Model):
         self.thumbnail_uri = thumbnail_uri
         self.user_id = user_id
         self.hidden = hidden
+        self.status = status

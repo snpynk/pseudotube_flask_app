@@ -8,12 +8,19 @@ from flask_login import current_user, login_user, logout_user
 from sqlalchemy import func, text
 
 from . import video
-from .context import db, login_manager, provider_manager, storage_manager
+from .context import (
+    gae,
+    db,
+    login_manager,
+    provider_manager,
+    storage_manager,
+    transcoder_service,
+)
+from .models.comment import Comment
 from .models.likes import Likes
 from .models.user import User
 from .models.video import Video
 from .models.views import Views
-from .models.comment import Comment
 
 
 def create_app():
@@ -207,11 +214,17 @@ def create_app():
                 timeout=5,
             )
 
+        video_file_name = video_hash + content_type.split("/")[-1]
         video_uri = storage_manager.upload_video(
             tmp_file_path,
-            f"videos/{video_hash}.{content_type.split('/')[-1]}",
+            f"videos/{video_file_name}",
         )
 
+        job = transcoder_service.create_transcoder_job(
+            f"gs://{gae.GCP_BUCKET_NAME}/videos/{video_file_name}",
+            f"gs://{gae.GCP_BUCKET_NAME}/videos_transcoded/{video_hash}/",
+            video_hash,
+        )
         thumbnail_uri = storage_manager.upload_thumbnail(
             video.generate_thumbnail(tmp_file_path),
             f"thumbnails/{video_hash}.jpg",

@@ -8,10 +8,13 @@
 	</div>
 
 	<div class="title-like-row">
+		<div class="uploader-info">
+			<img src="{{ video_info.uploader.picture }}" class="uploader-avatar" />
+		</div>
 		<div style="flex:1; min-width: 0;">
 			<div class="video-title">{{ video_info.video.title }}</div>
-			<div class="uploader-info">
-				<img src="{{ video_info.uploader.picture }}" class="uploader-avatar" />
+			<div class="video-stats">
+				{{ video_info.view_count }} views • {{ video_info.video.created_at.strftime('%b %d, %Y') }}
 			</div>
 		</div>
 		<button class="like-button" aria-label="Like video">

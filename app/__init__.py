@@ -119,7 +119,33 @@ def create_app():
 
     @app.route("/search", methods=["GET", "POST"])
     def route_search():
-        return "Hey"
+        if request.method == "POST":
+            search_query = request.form.get("search-query", "").strip()
+        else:
+            search_query = request.args.get("query", "").strip()
+
+        if not search_query:
+            return render_template(
+                "redirect.html",
+                redirect_url=url_for("route_index"),
+                message="Search query cannot be empty.",
+                timeout=5,
+            )
+
+        videos = db.session.execute(
+            db.select(Video, func.count(Views.id).label("view_count"), User.picture)
+            .outerjoin(Views, Video.id == Views.video_id)
+            .join(User, User.id == Video.user_id)
+            .where(Video.title.ilike(f"%{search_query}%"))
+            .group_by(Video.id, User.picture)
+        ).all()
+
+        return render_template(
+            "search_results.html",
+            user=current_user,
+            search_query=search_query,
+            videos=videos,
+        )
 
     @app.route("/upload", methods=["POST"])
     def route_upload():

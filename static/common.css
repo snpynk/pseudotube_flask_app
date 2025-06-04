@@ -187,6 +187,11 @@ body {
 	gap: 20px;
 }
 
+.stack {
+	display: grid;
+	gap: 20px;
+}
+
 /* Video Card */
 .card {
 	background: #fff;

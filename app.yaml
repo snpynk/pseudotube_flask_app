@@ -1,10 +1,15 @@
 runtime: python313
 
-entrypoint: gunicorn -b :$PORT app:app
+entrypoint: gunicorn -b :$PORT entry:app
 
-environment:
-  IS_GAE: true
+env_variables:
+  IS_GAE: "true"
+  PSEUDOTUBE_GCP_PROJECT: "pseudotube"
+  PSEUDOTUBE_GCP_LOCATION: "europe-west1"
   PSEUDOTUBE_GCP_BUCKET_NAME: "pseudotube-video-storage"
+  PSEUDOTUBE_DB_CONN_SUFFIX: "pseudotube?unix_socket=/cloudsql/pseudotube-db"
+  PSEUDOTUBE_DB_USER: "root"
+  PSEUDOTUBE_DB_PASS: ""
 
 handlers:
   - url: /.*

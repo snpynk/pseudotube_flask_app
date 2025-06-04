@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+
+<!-- Row 1 -->
+<div class="section-row">
+	<section class="section">
+		<div class="stack">
+			{% if videos|length == 0 %}
+			<div class="card">
+				<p class="card-title">No videos found.</p>
+			</div>
+			{% endif %}
+			{% for video, views, user_picture in videos %}
+			<div class="card">
+				<a href="/watch/{{ video.hash }}" class="card-link">
+					<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
+					<div class="card-header">
+						<div class="card-title">
+							<img src="{{user_picture}}" alt="Uploader avatar" class="video-card-avatar" />
+							{{ video.title }}
+						</div>
+						<div class="card-metadata">{{ views }}</div>
+					</div>
+				</a>
+			</div>
+			{% endfor %}
+		</div>
+	</section>
+</div>
+{% endblock %}

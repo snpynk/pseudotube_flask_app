@@ -49,7 +49,7 @@ def create_app():
     def route_index():
         most_watched = db.session.execute(
             db.select(Video, func.count(Views.id).label("view_count"), User.picture)
-            .join(Views, Video.id == Views.video_id)
+            .outerjoin(Views, Video.id == Views.video_id)
             .join(User, User.id == Video.user_id)
             .group_by(Video.id, User.picture)
             .order_by(func.count(Views.id).desc())
@@ -68,7 +68,7 @@ def create_app():
 
         trending = db.session.execute(
             db.select(Video, func.count(Views.id).label("view_count"), User.picture)
-            .join(Views, Video.id == Views.video_id)
+            .outerjoin(Views, Video.id == Views.video_id)
             .join(User, User.id == Video.user_id)
             .where(Views.created_at >= text("NOW() - INTERVAL 1 DAY"))
             .group_by(Video.id, User.picture)
@@ -213,33 +213,6 @@ def create_app():
                 message="Video not found.",
                 timeout=5,
             )
-
-        # video info with uploader info, views, likes and comment list
-        video.user = db.session.scalar(db.select(User).where(User.id == video.user_id))
-
-        video.views = (
-            db.session.execute(
-                db.select(func.count(Views.id)).where(Views.video_id == video.id)
-            ).scalar_one_or_none()
-            or 0
-        )
-
-        video.likes = (
-            db.session.execute(
-                db.select(func.count(Likes.id)).where(Likes.video_id == video.id)
-            ).scalar_one_or_none()
-            or 0
-        )
-
-        video.comments = (
-            db.session.execute(
-                db.select(Comment)
-                .where(Comment.video_id == video.id)
-                .order_by(Comment.created_at.desc())
-            )
-            .scalars()
-            .all()
-        )
 
         video_info = {
             "video": video,

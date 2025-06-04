@@ -1,6 +1,7 @@
 import os
 import secrets
 import uuid
+from urllib.parse import quote_plus
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify, redirect, render_template, request, url_for
@@ -9,8 +10,8 @@ from sqlalchemy import func, text
 
 from . import video
 from .context import (
-    gae,
     db,
+    gae,
     login_manager,
     provider_manager,
     storage_manager,
@@ -31,14 +32,15 @@ def create_app():
 
     DB_USER = os.getenv("PSEUDOTUBE_DB_USER", "root")
     DB_PASS = os.getenv("PSEUDOTUBE_DB_PASS", "password")
-    CONNECTION_PREFIX = os.getenv("PSEUDOTUBE_DB_CONN_PREFIX", "")
-    CONNECTION_SUFFIX = os.getenv(
-        "PSEUDOTUBE_DB_CONN_SUFFIX", "pseudotube-db?unix_socket=/cloudsql/pseudotube-db"
-    )
+    DB_INSTANCE = os.getenv("PSEUDOTUBE_DB_INSTANCE", "")
+    DB_NAME = os.getenv("PSEUDOTUBE_DB_NAME", "")
 
     app.config["SQLALCHEMY_DATABASE_URI"] = (
-        f"mysql+pymysql://{DB_USER}:{DB_PASS}@{CONNECTION_PREFIX}/{CONNECTION_SUFFIX}"
+        f"mysql+pymysql://{quote_plus(DB_USER)}:{quote_plus(DB_PASS)}"
+        f"@/{DB_NAME}?unix_socket=/cloudsql/{DB_INSTANCE}"
     )
+
+    print(app.config["SQLALCHEMY_DATABASE_URI"])
 
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 

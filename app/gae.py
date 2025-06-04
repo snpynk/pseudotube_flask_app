@@ -17,11 +17,9 @@ class GAE:
         if "IS_GAE" in os.environ:
             self.client = secretmanager.SecretManagerServiceClient()
 
-            self.OAUTH2_PROVIDERS = dumps([self.get_secret_oauth2()])
-
-            self.GCP_BUCKET_CREDENTIALS = dumps(self.get_secret_storage())
-
-            self.GCP_TRANSCODER_CREDENTIALS = dumps(self.get_secret_transcoder())
+            self.OAUTH2_PROVIDERS = "[" + self.get_secret_oauth2() + "]"
+            self.GCP_BUCKET_CREDENTIALS = self.get_secret_storage()
+            self.GCP_TRANSCODER_CREDENTIALS = self.get_secret_transcoder()
 
         else:
             google_oauth_cred_filename = "oauth2.creds.json"

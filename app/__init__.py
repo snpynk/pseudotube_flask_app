@@ -225,7 +225,8 @@ def create_app():
                 uri=video_uri,
                 thumbnail_uri=thumbnail_uri,
                 user_id=current_user.id,
-                hiden=0,
+                hidden=0,
+                status=1,
             )
         )
 

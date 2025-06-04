@@ -47,68 +47,64 @@ def create_app():
 
     @app.route("/")
     def route_index():
-        most_watched = (
-            db.session.execute(
-                db.select(Video)
-                .order_by(db.desc(db.func.count(Views.id)))
-                .join(Views, Video.id == Views.video_id)
-                .group_by(Video.id)
-                .limit(4)
-            )
-            .scalars()
-            .all()
-        )
+        most_watched = db.session.execute(
+            db.select(Video, func.count(Views.id).label("view_count"), User.picture)
+            .join(Views, Video.id == Views.video_id)
+            .join(User, User.id == Video.user_id)
+            .group_by(Video.id, User.picture)
+            .order_by(func.count(Views.id).desc())
+            .limit(4)
+        ).all()
 
-        most_liked = (
-            db.session.execute(
-                db.select(Video)
-                .order_by(db.desc(db.func.count(Likes.id)))
-                .join(Likes, Video.id == Likes.video_id)
-                .group_by(Video.id)
-                .limit(4)
-            )
-            .scalars()
-            .all()
-        )
+        most_liked = db.session.execute(
+            db.select(Video, func.count(Views.id).label("view_count"), User.picture)
+            .outerjoin(Views, Video.id == Views.video_id)  # For view count
+            .join(Likes, Video.id == Likes.video_id)  # For like count ordering
+            .join(User, User.id == Video.user_id)
+            .group_by(Video.id, User.picture)
+            .order_by(func.count(Likes.id).desc())
+            .limit(4)
+        ).all()
 
-        trending = (
-            db.session.execute(
-                db.select(Video)
-                .join(Views, Video.id == Views.video_id)
-                .where(Views.created_at >= text("NOW() - INTERVAL 1 DAY"))
-                .group_by(Video.id)
-                .order_by(func.count(Views.id).desc())
-                .limit(4)
-            )
-            .scalars()
-            .all()
-        )
+        trending = db.session.execute(
+            db.select(Video, func.count(Views.id).label("view_count"), User.picture)
+            .join(Views, Video.id == Views.video_id)
+            .join(User, User.id == Video.user_id)
+            .where(Views.created_at >= text("NOW() - INTERVAL 1 DAY"))
+            .group_by(Video.id, User.picture)
+            .order_by(func.count(Views.id).desc())
+            .limit(4)
+        ).all()
 
-        random_videos = (
-            db.session.execute(db.select(Video).order_by(db.func.random()).limit(4))
-            .scalars()
-            .all()
-        )
+        random_videos = db.session.execute(
+            db.select(Video, func.count(Views.id).label("view_count"), User.picture)
+            .outerjoin(Views, Video.id == Views.video_id)
+            .join(User, User.id == Video.user_id)
+            .group_by(Video.id, User.picture)
+            .order_by(db.func.random())
+            .limit(4)
+        ).all()
 
-        most_recent = (
-            db.session.execute(db.select(Video).order_by(db.desc(Video.id)).limit(4))
-            .scalars()
-            .all()
-        )
+        most_recent = db.session.execute(
+            db.select(Video, func.count(Views.id).label("view_count"), User.picture)
+            .outerjoin(Views, Video.id == Views.video_id)
+            .join(User, User.id == Video.user_id)
+            .group_by(Video.id, User.picture)
+            .order_by(db.desc(Video.id))
+            .limit(4)
+        ).all()
 
         user_videos = []
-
         if current_user.is_authenticated:
-            user_videos = (
-                db.session.execute(
-                    db.select(Video)
-                    .where(Video.user_id == current_user.id)
-                    .order_by(db.desc(Video.id))
-                    .limit(4)
-                )
-                .scalars()
-                .all()
-            )
+            user_videos = db.session.execute(
+                db.select(Video, func.count(Views.id).label("view_count"), User.picture)
+                .outerjoin(Views, Video.id == Views.video_id)
+                .join(User, User.id == Video.user_id)
+                .where(Video.user_id == current_user.id)
+                .group_by(Video.id, User.picture)
+                .order_by(db.desc(Video.id))
+                .limit(4)
+            ).all()
 
         return render_template(
             "index.html",

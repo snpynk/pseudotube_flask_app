@@ -12,11 +12,17 @@
 				<p class="card-title">No trending videos yet.</p>
 			</div>
 			{% endif %}
-			{% for video in trending %}
+			{% for video, views, user_picture in trending %}
 			<div class="card">
 				<a href="/watch/{{ video.hash }}" class="card-link">
 					<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
-					<div class="card-title">{{ video.title }}</div>
+					<div class="card-header">
+						<div class="card-title">
+							<img src="{{user_picture}}" alt="Uploader avatar" class="video-card-avatar" />
+							{{ video.title }}
+						</div>
+						<div class="card-metadata">{{ views }}</div>
+					</div>
 				</a>
 			</div>
 			{% endfor %}
@@ -31,11 +37,17 @@
 				<p class="card-title">No videos liked yet.</p>
 			</div>
 			{% endif %}
-			{% for video in most_liked %}
+			{% for video, views, user_picture in most_liked %}
 			<div class="card">
 				<a href="/watch/{{ video.hash }}" class="card-link">
 					<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
-					<div class="card-title">{{ video.title }}</div>
+					<div class="card-header">
+						<div class="card-title">
+							<img src="{{user_picture}}" alt="Uploader avatar" class="video-card-avatar" />
+							{{ video.title }}
+						</div>
+						<div class="card-metadata">{{ views }}</div>
+					</div>
 				</a>
 			</div>
 			{% endfor %}
@@ -52,11 +64,17 @@
 				<p class="card-title">No videos uploaded yet.</p>
 			</div>
 			{% endif %}
-			{% for video in most_recent %}
+			{% for video, views, user_picture in most_recent %}
 			<div class="card">
 				<a href="/watch/{{ video.hash }}" class="card-link">
 					<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
-					<div class="card-title">{{ video.title }}</div>
+					<div class="card-header">
+						<div class="card-title">
+							<img src="{{user_picture}}" alt="Uploader avatar" class="video-card-avatar" />
+							{{ video.title }}
+						</div>
+						<div class="card-metadata">{{ views }}</div>
+					</div>
 				</a>
 			</div>
 			{% endfor %}
@@ -71,11 +89,17 @@
 				<p class="card-title">No videos have been watched yet.</p>
 			</div>
 			{% endif %}
-			{% for video in most_watched %}
+			{% for video, views, user_picture in most_watched %}
 			<div class="card">
 				<a href="/watch/{{ video.hash }}" class="card-link">
 					<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
-					<div class="card-title">{{ video.title }}</div>
+					<div class="card-header">
+						<div class="card-title">
+							<img src="{{user_picture}}" alt="Uploader avatar" class="video-card-avatar" />
+							{{ video.title }}
+						</div>
+						<div class="card-metadata">{{ views }}</div>
+					</div>
 				</a>
 			</div>
 			{% endfor %}
@@ -92,11 +116,17 @@
 				<p class="card-title">No random videos yet.</p>
 			</div>
 			{% endif %}
-			{% for video in random_videos %}
+			{% for video, views, user_picture in random_videos %}
 			<div class="card">
 				<a href="/watch/{{ video.hash }}" class="card-link">
 					<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
-					<div class="card-title">{{ video.title }}</div>
+					<div class="card-header">
+						<div class="card-title">
+							<img src="{{user_picture}}" alt="Uploader avatar" class="video-card-avatar" />
+							{{ video.title }}
+						</div>
+						<div class="card-metadata">{{ views }}</div>
+					</div>
 				</a>
 			</div>
 			{% endfor %}
@@ -110,11 +140,17 @@
 				<p class="card-title">You have not uploaded any videos yet.</p>
 			</div>
 			{% endif %}
-			{% for video in user_videos %}
+			{% for video, views, user_picture in user_videos %}
 			<div class="card">
 				<a href="/watch/{{ video.hash }}" class="card-link">
 					<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
-					<div class="card-title">{{ video.title }}</div>
+					<div class="card-header">
+						<div class="card-title">
+							<img src="{{user_picture}}" alt="Uploader avatar" class="video-card-avatar" />
+							{{ video.title }}
+						</div>
+						<div class="card-metadata">{{ views }}</div>
+					</div>
 				</a>
 			</div>
 			{% endfor %}

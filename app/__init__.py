@@ -51,6 +51,7 @@ def create_app():
             db.select(Video, func.count(Views.id).label("view_count"), User.picture)
             .outerjoin(Views, Video.id == Views.video_id)
             .join(User, User.id == Video.user_id)
+            .where(Video.hidden == 0)
             .group_by(Video.id, User.picture)
             .order_by(func.count(Views.id).desc())
             .limit(4)
@@ -61,6 +62,7 @@ def create_app():
             .outerjoin(Views, Video.id == Views.video_id)  # For view count
             .join(Likes, Video.id == Likes.video_id)  # For like count ordering
             .join(User, User.id == Video.user_id)
+            .where(Video.hidden == 0)
             .group_by(Video.id, User.picture)
             .order_by(func.count(Likes.id).desc())
             .limit(4)
@@ -71,6 +73,7 @@ def create_app():
             .outerjoin(Views, Video.id == Views.video_id)
             .join(User, User.id == Video.user_id)
             .where(Views.created_at >= text("NOW() - INTERVAL 1 DAY"))
+            .where(Video.hidden == 0)
             .group_by(Video.id, User.picture)
             .order_by(func.count(Views.id).desc())
             .limit(4)
@@ -80,6 +83,7 @@ def create_app():
             db.select(Video, func.count(Views.id).label("view_count"), User.picture)
             .outerjoin(Views, Video.id == Views.video_id)
             .join(User, User.id == Video.user_id)
+            .where(Video.hidden == 0)
             .group_by(Video.id, User.picture)
             .order_by(db.func.random())
             .limit(4)
@@ -89,6 +93,7 @@ def create_app():
             db.select(Video, func.count(Views.id).label("view_count"), User.picture)
             .outerjoin(Views, Video.id == Views.video_id)
             .join(User, User.id == Video.user_id)
+            .where(Video.hidden == 0)
             .group_by(Video.id, User.picture)
             .order_by(db.desc(Video.id))
             .limit(4)
@@ -100,6 +105,7 @@ def create_app():
                 db.select(Video, func.count(Views.id).label("view_count"), User.picture)
                 .outerjoin(Views, Video.id == Views.video_id)
                 .join(User, User.id == Video.user_id)
+                .where(Video.hidden == 0)
                 .where(Video.user_id == current_user.id)
                 .group_by(Video.id, User.picture)
                 .order_by(db.desc(Video.id))
@@ -219,6 +225,7 @@ def create_app():
                 uri=video_uri,
                 thumbnail_uri=thumbnail_uri,
                 user_id=current_user.id,
+                hiden=0,
             )
         )
 

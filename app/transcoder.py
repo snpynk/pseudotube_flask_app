@@ -12,6 +12,7 @@ from google.cloud.video.transcoder_v1.types import (
     MuxStream,
     SegmentSettings,
     Manifest,
+    PubsubDestination,
 )
 from google.protobuf.duration_pb2 import Duration
 from typing import Optional
@@ -28,8 +29,10 @@ class TranscoderService:
         credentials_json: str,
         project_id: str,
         location: str,
+        upload_queue: str,
     ):
         self.PROJECT_ID = project_id
+        self.PUBSUB_UPLOAD_QUEUE_TOPIC = upload_queue
         self.LOCATION = location
 
         self.credentials: Optional[Credentials] = None
@@ -119,6 +122,9 @@ class TranscoderService:
             input_uri=input_uri,
             output_uri=output_uri,
             config=JobConfig(
+                pubsub_destination=PubsubDestination(
+                    topic=f"projects/{self.PROJECT_ID}/topics/{self.PUBSUB_UPLOAD_QUEUE_TOPIC}"
+                ),
                 elementary_streams=elementary_streams,
                 sprite_sheets=[
                     SpriteSheet(

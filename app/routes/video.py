@@ -8,7 +8,7 @@ from ..models.video import Video
 from ..models.likes import Likes
 from ..models.views import Views
 
-route_video_bp = Blueprint("video", __name__, url_prefix="/video")
+route_video_bp = Blueprint("video", __name__, url_prefix="/api/video")
 
 
 @route_video_bp.route("/comment/<video_hash>", methods=["POST"])

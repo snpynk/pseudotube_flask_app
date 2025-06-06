@@ -5,8 +5,6 @@ from urllib.parse import quote_plus
 from dotenv import load_dotenv
 from flask import Flask, redirect, url_for
 
-from . import routes
-
 from .context import (
     db,
     login_manager,
@@ -37,6 +35,8 @@ def create_app():
     login_manager.init_app(app)
 
     provider_manager.setup()
+
+    from . import routes
 
     app.register_blueprint(routes.user.route_user_bp)
     app.register_blueprint(routes.main.main_bp)

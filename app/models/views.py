@@ -13,3 +13,6 @@ class Views(db.Model):
     created_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, default=datetime.now
     )
+    def __init__(self, video_id: int, user_id: int | None = None):
+        self.video_id = video_id
+        self.user_id = user_id

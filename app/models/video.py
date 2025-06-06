@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Float
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..context import db
 
@@ -12,6 +12,7 @@ class Video(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(128), nullable=False)
     description: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     hidden: Mapped[int] = mapped_column(
         Integer(), nullable=False, default=0
     )  # (0) public, (1) unlisted
@@ -26,6 +27,11 @@ class Video(db.Model):
     created_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, default=datetime.now
     )
+    comments = relationship(
+        "Comment", cascade="all, delete-orphan", back_populates="video"
+    )
+    likes = relationship("Likes", cascade="all, delete-orphan", back_populates="video")
+    views = relationship("Views", cascade="all, delete-orphan", back_populates="video")
 
     def __init__(
         self,

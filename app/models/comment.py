@@ -2,7 +2,7 @@ from datetime import datetime
 
 from ..context import db
 from sqlalchemy import DateTime, ForeignKey, Integer, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
 class Comment(db.Model):
@@ -16,6 +16,9 @@ class Comment(db.Model):
     )
     text: Mapped[str] = mapped_column(String(1024), nullable=False)
     created_at = mapped_column(DateTime(), nullable=False, default=datetime.now)
+
+    user = relationship("User", back_populates="comments")
+    video = relationship("Video", back_populates="comments")
 
     def __init__(self, video_id: int, user_id: int, text: str):
         self.video_id = video_id

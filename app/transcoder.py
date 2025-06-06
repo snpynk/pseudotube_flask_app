@@ -8,6 +8,7 @@ from google.cloud.video.transcoder_v1.types import (
     ElementaryStream,
     VideoStream,
     AudioStream,
+    SpriteSheet,
     MuxStream,
     SegmentSettings,
     Manifest,
@@ -119,6 +120,17 @@ class TranscoderService:
             output_uri=output_uri,
             config=JobConfig(
                 elementary_streams=elementary_streams,
+                sprite_sheets=[
+                    SpriteSheet(
+                        file_prefix="small-thumbnail",
+                        sprite_width_pixels=240,
+                        sprite_height_pixels=240,
+                        total_count=1,
+                        row_count=1,
+                        column_count=1,
+                        # start_time_offset=Duration(
+                        #     seconds=randint(0, int(duration)) if duration > 0 else 0
+                        # ),
                     ),
                 ],
                 mux_streams=mux_streams,

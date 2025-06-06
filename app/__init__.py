@@ -718,6 +718,26 @@ def create_app():
                 else:
                     return jsonify({"error": "Unknown video status"}), 500
 
+    @app.route("/favicon.ico")
+    def favicon():
+        return redirect(url_for("static", filename="favicon.ico"))
+
+    @app.route("/apple-touch-icon.png")
+    def apple_touch_icon():
+        return redirect(url_for("static", filename="apple-touch-icon.png"))
+
+    @app.route("/android-chrome-192x192.png")
+    def android_chrome_192x192():
+        return redirect(url_for("static", filename="android-chrome-192x192.png"))
+
+    @app.route("/android-chrome-512x512.png")
+    def android_chrome_512x512():
+        return redirect(url_for("static", filename="android-chrome-512x512.png"))
+
+    @app.route("/site.webmanifest")
+    def site_webmanifest():
+        return redirect(url_for("static", filename="site.webmanifest"))
+
     with app.app_context():
         db.create_all()
 

@@ -21,5 +21,8 @@ provider_manager = OAuthProviderManager(gae.OAUTH2_PROVIDERS)
 storage_manager = StorageManager(gae.GCP_BUCKET_NAME, gae.GCP_BUCKET_CREDENTIALS)
 
 transcoder_service = TranscoderService(
-    gae.GCP_PROJECT_NAME, gae.GCP_LOCATION, gae.GCP_TRANSCODER_CREDENTIALS
+    gae.GCP_TRANSCODER_CREDENTIALS,
+    gae.GCP_PROJECT_NAME,
+    gae.GCP_LOCATION,
+    gae.GCP_PUBSUB_UPLOAD_QUEUE_TOPIC,
 )

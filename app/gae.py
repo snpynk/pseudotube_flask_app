@@ -1,5 +1,4 @@
 import os
-from json import dumps
 
 from google.cloud import secretmanager
 
@@ -11,8 +10,15 @@ class GAE:
         self.GCP_BUCKET_NAME = os.getenv(
             "PSEUDOTUBE_GCP_BUCKET_NAME", "pseudotube-video-storage"
         )
-        self.PSEUDOTUBE_GCP_CREDENTIALS = os.getenv("PSEUDOTUBE_GCP_CREDENTIALS", None)
+        self.GCP_PUBSUB_UPLOAD_QUEUE_TOPIC = os.getenv(
+            "PSEUDOTUBE_PUBSUB_UPLOAD_QUEUE_TOPIC", "upload-queue"
+        )
+
+        self.GCP_CREDENTIALS = os.getenv("PSEUDOTUBE_GCP_CREDENTIALS", None)
+
         self.OAUTH2_PROVIDERS = os.getenv("PSEUDOTUBE_OAUTH2_PROVIDERS", None)
+
+        self.GCF_FFPROBE = os.getenv("PSEUDOTUBE_GCF_FFPROBE", "/ffprobe")
 
         if "IS_GAE" in os.environ:
             self.client = secretmanager.SecretManagerServiceClient()

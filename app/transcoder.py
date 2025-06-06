@@ -118,6 +118,7 @@ class TranscoderService:
             input_uri=input_uri,
             output_uri=output_uri,
             config=JobConfig(
+                elementary_streams=elementary_streams,
                     ),
                 ],
                 mux_streams=mux_streams,

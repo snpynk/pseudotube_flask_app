@@ -7,9 +7,9 @@ env_variables:
   PSEUDOTUBE_GCP_PROJECT: "pseudotube"
   PSEUDOTUBE_GCP_LOCATION: "europe-west1"
   PSEUDOTUBE_GCP_BUCKET_NAME: "pseudotube-video-storage"
-  PSEUDOTUBE_DB_INSTANCE: "pseudotube:europe-southwest1:pseudotube-db"
+  PSEUDOTUBE_DB_INSTANCE: "/cloudsql/pseudotube:europe-southwest1:pseudotube-db"
   PSEUDOTUBE_DB_USER: "pseudotube"
-  PSEUDOTUBE_DB_PASS: ""
+  PSEUDOTUBE_DB_PASS: "qwertyuiop"
   PSEUDOTUBE_DB_NAME: "pseudotube"
 
 handlers:

@@ -1,10 +1,40 @@
+// the upload process changed
+// when the modal is opened, an HTTP request should be made to fetch the file upload URL
+// the file should be uploaded to that URL
+// once the upload is complete, the user should send a POST request to a certain endpoint  with the file URL and hash
+//
 document.addEventListener('DOMContentLoaded', function () {
 	const uploadButton = document.getElementById("upload-button");
 	const modal = document.querySelector('.modal-overlay');
 	const closeButton = document.getElementById("upload-modal-close-button");
 
+	const data = {
+		upload_url: '',
+		upload_hash: '',
+	};
+
 	if (uploadButton && modal && closeButton) {
-		uploadButton.addEventListener('click', () => modal.classList.add('active'));
+		uploadButton.addEventListener('click', () => {
+			// Fetch the upload URL from the server
+			fetch("/generate_upload_url", { method: 'POST' })
+				.then(response => response.json())
+				.then(response_data => {
+					if (response_data.upload_url) {
+						data.upload_url = response_data.upload_url;
+						data.upload_hash = response_data.upload_hash;
+						document.getElementById('upload-form').action = data.upload_url;
+					} else {
+						alert('Failed to get upload URL. Please try again later.');
+					}
+
+					modal.classList.add('active')
+				})
+				.catch(error => {
+					console.error('Error fetching upload URL:', error);
+					alert('An error occurred while trying to get the upload URL.');
+				});
+		});
+
 		closeButton.addEventListener('click', () => modal.classList.remove('active'));
 
 		modal.addEventListener('click', (e) => {
@@ -40,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 	}
 
-	const form = document.querySelector('.upload-form');
+	const form = document.getElementById('upload-form');
 	const progressBar = document.getElementById('upload-progress');
 	const statusText = document.getElementById('upload-status');
 
@@ -49,9 +79,10 @@ document.addEventListener('DOMContentLoaded', function () {
 			e.preventDefault();
 
 			const formData = new FormData(form);
+			console.log('Form data:', formData);
 
 			const xhr = new XMLHttpRequest();
-			xhr.open('POST', form.action, true);
+			xhr.open('PUT', form.action, true);
 
 			progressBar.style.display = 'block';
 			statusText.textContent = 'Uploading...';
@@ -67,14 +98,30 @@ document.addEventListener('DOMContentLoaded', function () {
 			xhr.onload = function () {
 				if (xhr.status === 200) {
 					progressBar.value = 100;
-					statusText.textContent = 'Upload complete! Redirecting...';
 
-					const response = JSON.parse(xhr.responseText);
-					if (response.redirect_url) {
-						setTimeout(() => {
-							window.location.href = response.redirect_url;
-						}, 1000);
-					}
+					fetch('/upload', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({
+							upload_url: data.upload_url,
+							upload_hash: data.upload_hash,
+							title: formData.get('video-title'),
+							description: formData.get('video-desc'),
+						})
+					})
+
+					setTimeout(() => {
+						window.location.href = '/waitfor/' + data.upload_hash;
+					}, 1000);
+
+					// const response = JSON.parse(xhr.responseText);
+					// if (response.redirect_url) {
+					// 	setTimeout(() => {
+					// 		window.location.href = response.redirect_url;
+					// 	}, 1000);
+					// }
 				} else {
 					statusText.textContent = 'Upload failed. Please try again.';
 				}
@@ -84,7 +131,9 @@ document.addEventListener('DOMContentLoaded', function () {
 				statusText.textContent = 'An error occurred during upload.';
 			};
 
-			xhr.send(formData);
+			const file = document.getElementById('file-upload').files[0];
+			xhr.setRequestHeader('Content-Type', file.type || 'video/mp4');
+			xhr.send(file);
 		});
 	}
 });

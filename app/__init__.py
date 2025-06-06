@@ -1,14 +1,19 @@
 import os
+import json
 import secrets
+import time
 import uuid
 from urllib.parse import quote_plus
+import google.auth
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
 
+import requests
 from dotenv import load_dotenv
-from flask import Flask, jsonify, redirect, render_template, request, url_for
+from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_user, logout_user
 from sqlalchemy import func, text
 
-from . import video
 from .context import (
     db,
     gae,
@@ -166,6 +171,45 @@ def create_app():
             videos=videos,
         )
 
+    @app.route("/generate_upload_url", methods=["POST"])
+    def generate_upload_url():
+        if not current_user.is_authenticated:
+            return render_template(
+                "redirect.html",
+                redirect_url=url_for("route_index"),
+                message="You must be logged in to upload a video.",
+                timeout=5,
+            )
+
+        if "last_upload_timestamp" in session:
+            last_upload_timestamp = session["last_upload_timestamp"]
+
+            if time.time() - last_upload_timestamp < 60 * 5:
+                return jsonify(
+                    {
+                        "upload_url": session.get("last_upload_url"),
+                        "upload_hash": session.get("last_upload_hash"),
+                    },
+                )
+
+        try:
+            upload_hash = uuid.uuid4().hex
+            upload_url = storage_manager.generate_upload_url(f"uploads/{upload_hash}")
+
+            session["last_upload_timestamp"] = time.time()
+            session["last_upload_url"] = upload_url
+            session["last_upload_hash"] = upload_hash
+
+            return jsonify(
+                {
+                    "upload_url": upload_url,
+                    "upload_hash": upload_hash,
+                }
+            )
+
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 400
+
     @app.route("/upload", methods=["POST"])
     def route_upload():
         if not current_user.is_authenticated:
@@ -176,84 +220,116 @@ def create_app():
                 timeout=5,
             )
 
-        if not (request and request.files and "file-upload" in request.files.keys()):
+        if "last_upload_url" not in session or "last_upload_hash" not in session:
             return render_template(
                 "redirect.html",
                 redirect_url=url_for("route_index"),
-                message="No file part in the request.",
+                message="No upload URL found. Please generate a new upload URL.",
                 timeout=5,
             )
 
-        file = request.files["file-upload"]
+        upload_hash = session["last_upload_hash"]
 
-        if file.filename == "":
+        if not storage_manager.path_exists(f"uploads/{upload_hash}"):
             return render_template(
                 "redirect.html",
                 redirect_url=url_for("route_index"),
-                message="File is empty",
+                message="Upload file not found. Please try uploading again.",
                 timeout=5,
             )
 
-        content_type = file.content_type or ""
-        if not content_type.startswith("video/"):
-            return render_template(
-                "redirect.html",
-                redirect_url=url_for("route_index"),
-                message="File is not a video.",
-                timeout=5,
-            )
+        data = request.get_json()
 
-        video_hash = uuid.uuid4().hex
-        file_extension = os.path.splitext(file.filename)[-1]
-        tmp_file_path = f"instance/{video_hash}.{file_extension}"
+        auth_req = google_requests.Request()
+        token = id_token.fetch_id_token(auth_req, gae.GCF_FFPROBE)
 
-        with open(tmp_file_path, "wb") as f:
-            f.write(file.read())
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        }
 
-        try:
-            video.validate_video_streamable(tmp_file_path)
-        except video.VideoStreamingError as err:
-            return render_template(
-                "redirect.html",
-                redirect_url=url_for("route_index"),
-                message=f"Video validation failed: {err}",
-                timeout=5,
-            )
-
-        video_file_name = video_hash + content_type.split("/")[-1]
-        video_uri = storage_manager.upload_video(
-            tmp_file_path,
-            f"videos/{video_file_name}",
+        response = requests.post(
+            gae.GCF_FFPROBE,
+            headers=headers,
+            data=json.dumps(
+                {"gcs_path": f"gs://{gae.GCP_BUCKET_NAME}/uploads/{upload_hash}"}
+            ),
         )
+
+        if response.status_code != 200:
+            return render_template(
+                "redirect.html",
+                redirect_url=url_for("route_index"),
+                message="Failed to get video metadata. Please try again later.",
+                timeout=5,
+            )
+
+        metadata = response.json()
 
         job = transcoder_service.create_transcoder_job(
-            f"gs://{gae.GCP_BUCKET_NAME}/videos/{video_file_name}",
-            f"gs://{gae.GCP_BUCKET_NAME}/videos_transcoded/{video_hash}/",
-            video_hash,
-        )
-        thumbnail_uri = storage_manager.upload_thumbnail(
-            video.generate_thumbnail(tmp_file_path),
-            f"thumbnails/{video_hash}.jpg",
+            f"gs://{gae.GCP_BUCKET_NAME}/uploads/{upload_hash}",
+            f"gs://{gae.GCP_BUCKET_NAME}/transcoded/{upload_hash}/",
+            metadata["width"],
+            metadata["height"],
+            metadata["fps"],
+            metadata["duration"],
         )
 
         db.session.add(
             Video(
-                title=request.form.get("video-title", "Untitled Video"),
-                description=request.form.get("video-description", None),
-                hash=video_hash,
-                uri=video_uri,
-                thumbnail_uri=thumbnail_uri,
+                title=data.get("title"),
+                description=data.get("description", None),
+                hash=upload_hash,
+                thumbnail_url="",
                 user_id=current_user.id,
                 hidden=0,
                 status=1,
+                duration=metadata["duration"],
+                job=job.name,
             )
         )
 
         db.session.commit()
 
-        os.remove(tmp_file_path)
+        session.pop("last_upload_timestamp")
+        session.pop("last_upload_url")
+        session.pop("last_upload_hash")
 
-        return jsonify({"redirect_url": url_for("route_watch", video_hash=video_hash)})
+        return render_template(
+            "redirect.html",
+            redirect_url=url_for("route_waitfor", video_hash=upload_hash),
+            message="Video upload done successfully. It will be processed shortly.",
+            timeout=3,
+        )
+
+    @app.route("/waitfor/<video_hash>", methods=["GET"])
+    def route_waitfor(video_hash):
+        video = db.session.scalar(db.select(Video).where(Video.hash == video_hash))
+
+        if not video:
+            return render_template(
+                "redirect.html",
+                redirect_url=url_for("route_index"),
+                message="Video not found.",
+                timeout=5,
+            )
+
+        if video.status == 0:
+            return redirect(url_for("route_watch", video_hash=video_hash))
+
+        if video.status == 1:
+            return render_template(
+                "waitfor.html",
+                user=current_user,
+                video=video,
+            )
+
+        return render_template(
+            "redirect.html",
+            redirect_url=url_for("route_index"),
+            message="Video processing failed.",
+            timeout=5,
+        )
 
     @app.route("/watch/<video_hash>", methods=["GET"])
     def route_watch(video_hash):
@@ -267,8 +343,31 @@ def create_app():
                 timeout=5,
             )
 
+        video_stream_url = None
+
+        try:
+            video_stream_url = storage_manager.get_public_url(
+                f"transcoded/{video.hash}/manifest.mpd"
+            )
+
+            video_orig_url = storage_manager.get_public_url(f"uploads/{video.hash}")
+
+            if video.status != 0:
+                video.status = 0
+                video.thumbnail_url = storage_manager.get_public_url(
+                    f"transcoded/{video.hash}/small-thumbnail0000000000.jpeg"
+                )
+
+        except RuntimeError as e:
+            if "does not exist in the bucket" in str(e) and video.status == 0:
+                video.status = 1
+
+        db.session.commit()
+
         video_info = {
             "video": video,
+            "video_url": (video_stream_url),
+            "video_orig_url": (video_orig_url),
             "uploader": db.session.scalar(
                 db.select(User).where(User.id == video.user_id)
             ),
@@ -287,18 +386,41 @@ def create_app():
             # include user avatar per comment
             "comments": (
                 db.session.execute(
-                    db.select(Comment, User)
+                    db.select(Comment, User.picture.label("user_picture"))
                     .join(User, Comment.user_id == User.id)
                     .where(Comment.video_id == video.id)
                     .order_by(Comment.created_at.desc())
                 ).all()
             ),
+            "liked": (
+                db.session.scalar(
+                    db.select(Likes).where(
+                        Likes.video_id == video.id,
+                        Likes.user_id == current_user.id
+                        if current_user.is_authenticated
+                        else None,
+                    )
+                )
+                is not None
+            ),
         }
 
+        watch_id = uuid.uuid4().hex
+
+        if "watching_list" not in session:
+            session["watching_list"] = {}
+
+        watching_list = session["watching_list"]
+        watching_list[watch_id] = {
+            "video_hash": video.hash,
+            "watch_start_ts": time.time(),
+            "watched": False,
+        }
+
+        session["watching_list"] = watching_list
+
         return render_template(
-            "watch.html",
-            user=current_user,
-            video_info=video_info,
+            "watch.html", user=current_user, video_info=video_info, watch_id=watch_id
         )
 
     @app.route("/logout")
@@ -363,6 +485,238 @@ def create_app():
 
         login_user(authorized_user)
         return redirect(url_for("route_index"))
+
+    @app.route("/api/video/like/<video_hash>", methods=["GET", "POST", "DELETE"])
+    def route_video_like(video_hash):
+        if not current_user.is_authenticated:
+            return jsonify({"error": "User not authenticated"}), 401
+
+        if not video_hash:
+            return jsonify({"error": "Missing video hash"}), 400
+
+        video = db.session.scalar(db.select(Video).where(Video.hash == video_hash))
+
+        if not video:
+            return jsonify({"error": "Video not found"}), 404
+
+        if video.status != 0:
+            return jsonify({"error": "Video is not available"}), 404
+
+        existing_like = db.session.scalar(
+            db.select(Likes).where(
+                Likes.video_id == video.id, Likes.user_id == current_user.id
+            )
+        )
+
+        method = request.method
+
+        if method == "DELETE":
+            if not existing_like:
+                return jsonify({"error": "Like not found"}), 404
+
+            db.session.delete(existing_like)
+            db.session.commit()
+
+            return jsonify({"message": "Video like removed successfully"}), 200
+
+        elif method == "POST":
+            if existing_like:
+                return jsonify({"error": "Video already liked"}), 400
+
+            db.session.add(Likes(video_id=video.id, user_id=current_user.id))
+            db.session.commit()
+
+            return jsonify({"message": "Video liked successfully"}), 200
+
+        else:
+            return jsonify({"liked": existing_like}), 200
+
+    # should work for any kind of user
+    @app.route("/api/video/view/<watch_id>", methods=["POST"])
+    def route_video_view(watch_id):
+        if "watching_list" not in session:
+            return jsonify({"error": "No video watch session found"}), 400
+
+        watching_list = session["watching_list"]
+
+        if watch_id not in watching_list:
+            return jsonify({"error": "Invalid watch session ID"}), 400
+
+        watching = watching_list[watch_id]
+
+        if watching["watched"]:
+            return jsonify({"error": "Video already watched"}), 400
+
+        video_hash = watching["video_hash"]
+
+        video = db.session.scalar(db.select(Video).where(Video.hash == video_hash))
+
+        if time.time() - watching["watch_start_ts"] <= video.duration * 0.15:
+            return jsonify({"error": "Video view too soon after start"}), 400
+
+        if not video:
+            return jsonify({"error": "Video not found"}), 404
+
+        if video.status != 0:
+            return jsonify({"error": "Video is not available"}), 404
+
+        db.session.add(
+            Views(
+                video_id=video.id,
+                user_id=current_user.id if current_user.is_authenticated else None,
+            )
+        )
+
+        db.session.commit()
+
+        session["watching_list"][watch_id]["watched"] = True
+
+        return jsonify({"message": "Video view recorded successfully"}), 200
+
+    @app.route("/api/video/comment/<video_hash>", methods=["POST"])
+    def route_comment(video_hash):
+        if not current_user.is_authenticated:
+            return jsonify({"error": "User not authenticated"}), 401
+
+        if not video_hash:
+            return jsonify({"error": "Missing video hash"}), 400
+
+        video = db.session.scalar(db.select(Video).where(Video.hash == video_hash))
+
+        if not video:
+            return jsonify({"error": "Video not found"}), 404
+
+        if video.status != 0:
+            return jsonify({"error": "Video is not available"}), 404
+
+        data = request.get_json()
+        text = data.get("text", "").strip()
+
+        if not text:
+            return jsonify({"error": "Comment content cannot be empty"}), 400
+
+        comment = Comment(
+            text=text,
+            user_id=current_user.id,
+            video_id=video.id,
+        )
+
+        db.session.add(comment)
+        db.session.commit()
+
+        return jsonify({"message": "Comment added successfully"}), 201
+
+    @app.route("/api/video/<video_hash>", methods=["DELETE"])
+    def route_remove_video(video_hash):
+        if not current_user.is_authenticated:
+            return jsonify({"error": "User not authenticated"}), 401
+
+        if not video_hash:
+            return jsonify({"error": "Missing video hash"}), 400
+
+        video = db.session.scalar(db.select(Video).where(Video.hash == video_hash))
+
+        if not video:
+            return jsonify({"error": "Video not found"}), 404
+
+        if video.user_id != current_user.id:
+            return jsonify(
+                {"error": "You do not have permission to remove this video"}
+            ), 403
+
+        likes = db.session.scalars(
+            db.select(Likes).where(Likes.video_id == video.id)
+        ).all()
+        comments = db.session.scalars(
+            db.select(Comment).where(Comment.video_id == video.id)
+        ).all()
+        views = db.session.scalars(
+            db.select(Views).where(Views.video_id == video.id)
+        ).all()
+
+        for like in likes:
+            db.session.delete(like)
+        for comment in comments:
+            db.session.delete(comment)
+        for view in views:
+            db.session.delete(view)
+
+        db.session.delete(video)
+        db.session.commit()
+
+        return jsonify({"message": "Video removed successfully"}), 200
+
+    @app.route("/api/transcoder/status", methods=["GET", "POST"])
+    def route_transcoder_status():
+        if request.method == "POST":
+            data = request.get_json()
+            job_id = data.get("job_id")
+            state = data.get("state")
+
+            if not job_id or not state:
+                return jsonify({"error": "Missing job_id or job_state"}), 400
+
+            video = db.session.scalar(db.select(Video).where(Video.job == job_id))
+
+            if not video:
+                return jsonify({"error": "Video not found"}), 404
+
+            if video.status == 0:
+                return jsonify({"message": "Video already processed"}), 200
+
+            if not storage_manager.path_exists(f"transcoded/{video.hash}/manifest.mpd"):
+                return jsonify({"error": "Video file is still unavailable"}), 404
+
+            video.job = None
+
+            if state == "SUCCEEDED":
+                video.status = 0
+                video.thumbnail_url = storage_manager.get_public_url(
+                    f"transcoded/{video.hash}/small-thumbnail0000000000.jpeg"
+                )
+            elif state == "FAILED":
+                video.status = 2  # Failed status
+            else:
+                return jsonify({"error": "Invalid job state"}), 400
+
+            db.session.commit()
+
+            return jsonify({"message": "Job status updated successfully"}), 200
+        else:
+            timestamp = time.time()
+            if "last_request_timestamp" in session:
+                last_request_timestamp = session.get("last_request_timestamp", 0)
+
+                if timestamp - last_request_timestamp < 1:
+                    return jsonify({"error": "Rate limit exceeded"}), 429
+
+            video_hash = request.args.get("video_hash")
+
+            if not video_hash:
+                return jsonify({"error": "Missing video hash"}), 400
+
+            video = db.session.scalar(db.select(Video).where(Video.hash == video_hash))
+
+            if not video:
+                return jsonify({"error": "Video not found"}), 404
+
+            if video.status == 0:
+                return jsonify({"status": "processed"}), 200
+            else:
+                if storage_manager.path_exists(f"transcoded/{video.hash}/manifest.mpd"):
+                    video.status = 0
+                    video.thumbnail_url = storage_manager.get_public_url(
+                        f"transcoded/{video.hash}/small-thumbnail0000000000.jpeg"
+                    )
+                    db.session.commit()
+                    return jsonify({"status": "processed"}), 200
+
+                if video.status == 1:
+                    return jsonify({"status": "processing"}), 200
+                elif video.status == 2:
+                    return jsonify({"status": "failed"}), 200
+                else:
+                    return jsonify({"error": "Unknown video status"}), 500
 
     with app.app_context():
         db.create_all()

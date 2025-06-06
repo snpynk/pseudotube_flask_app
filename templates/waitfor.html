@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}{{ video.title }}{% endblock %}
+{% block content %}
+
+<div class="watch-container">
+	<div class="video-player">
+		<div class="video-placeholder-message">
+			<h2 id="message"></h2>
+		</div>
+	</div>
+
+	<div class="title-like-row">
+		<div style="flex:1; min-width: 0;">
+			<div class="video-title">{{ video.title }}</div>
+		</div>
+	</div>
+
+	{% if video.description != None %}
+	<div class="video-description">{{ video.description }}</div>
+	{% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+let mainInterval;
+function redirectTo(url, message, delay) {
+	timeLeft = delay;
+
+	setInterval(() => {
+		document.getElementById('message').innerText = message.replace('%d', timeLeft);
+		timeLeft--;
+
+		if (timeLeft < 0) {
+			window.location.href = url;
+		}
+	}, 1000);
+}
+document.addEventListener('DOMContentLoaded', function() {
+	// Placeholder for any JavaScript functionality needed
+	let retry = 0;
+	const mainInterval = setInterval(function() {
+		// Simulate video processing completion
+		fetch("/api/transcoder/status?video_hash={{ video.hash }}")
+			.then(response => response.json())
+			.then(data => {
+				if (data.status === 'processing') {
+					random_emoji = ['🔄', '⏳', '⌛', '🕒'][Math.floor(Math.random() * 4)];
+					retry++;
+					document.getElementById('message').innerText = "Your video is being processed... " + random_emoji;
+				} else {
+					if (data.status === 'processed') {
+						redirectTo("/watch/{{video.hash}}", "Video processed! Redirecting in %d seconds...", 3);
+					} else if (data.status === 'failed') {
+						redirectTo("/watch/{{video.hash}}", "Video processing failed and the video will be deleted. Redirecting to home in %d seconds...", 3);
+					} else {
+						document.getElementById('message').innerText = "Unknown status: " + data.status;
+					}
+					clearInterval(mainInterval); // Stop checking once processing is done
+				}
+			})
+			.catch(error => console.error('Error fetching video:', error));
+	}, 1000); 
+});
+
+</script>
+
+{% endblock %}

@@ -5,6 +5,11 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 		<title>{% block title %}{% endblock %} - PSEUDOTUBE</title>
 		<link rel="stylesheet" href="{{ url_for('static', filename='common.css') }}">
+
+		<!-- UI version of Shaka Player (includes shaka.ui) -->
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.5/controls.css">
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.5/shaka-player.ui.js"></script>
+
 		{% block head %}
 		{% endblock %}
 	</head>
@@ -24,7 +29,6 @@
 				<div class="btn-group">
 					<p class="pill-button gray">
 					<img src={{user.picture}} class="picture">
-					{{user.email}}
 					</p>
 					<a href="{{ url_for('route_logout') }}" class="pill-button black" title="Logout">⍈</a>
 				</div>
@@ -39,14 +43,14 @@
 		{% block scripts %}{% endblock %}
 
 		<script>
-		document.getElementById("search-bar-input")?.addEventListener('keypress', function (event) {
-			if (event.key === 'Enter') {
-				const query = this.value;
-				if (query) {
-					window.location.href = `/search?query=${encodeURIComponent(query)}`;
+			document.getElementById("search-bar-input")?.addEventListener('keypress', function (event) {
+				if (event.key === 'Enter') {
+					const query = this.value;
+					if (query) {
+						window.location.href = `/search?query=${encodeURIComponent(query)}`;
+					}
 				}
-			}
-		});
+			});
 		</script>
 		{% if user.is_authenticated %}
 		<script src="{{ url_for('static', filename='upload.js') }}"></script>

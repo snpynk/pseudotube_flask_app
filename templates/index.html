@@ -8,14 +8,12 @@
 		<h2 class="section-title">Trending</h2>
 		<div class="grid">
 			{% if trending|length == 0 %}
-			<div class="card">
-				<p class="card-title">No trending videos yet.</p>
-			</div>
+				<p class="">No trending videos yet.</p>
 			{% endif %}
 			{% for video, views, user_picture in trending %}
 			<div class="card">
 				<a href="/watch/{{ video.hash }}" class="card-link">
-					<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
+					<div class="card-thumb" style="background-image: url('{{ video.thumbnail_url }}');"></div>
 					<div class="card-header">
 						<div class="card-title">
 							<img src="{{user_picture}}" alt="Uploader avatar" class="video-card-avatar" />
@@ -33,14 +31,12 @@
 		<h2 class="section-title">Most Liked</h2>
 		<div class="grid">
 			{% if most_liked|length == 0 %}
-			<div class="card">
-				<p class="card-title">No videos liked yet.</p>
-			</div>
+				<p class="">No videos liked yet.</p>
 			{% endif %}
 			{% for video, views, user_picture in most_liked %}
 			<div class="card">
 				<a href="/watch/{{ video.hash }}" class="card-link">
-					<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
+					<div class="card-thumb" style="background-image: url('{{ video.thumbnail_url }}');"></div>
 					<div class="card-header">
 						<div class="card-title">
 							<img src="{{user_picture}}" alt="Uploader avatar" class="video-card-avatar" />
@@ -60,14 +56,12 @@
 		<h2 class="section-title">Most recent</h2>
 		<div class="grid">
 			{% if most_recent|length == 0 %}
-			<div class="card">
-				<p class="card-title">No videos uploaded yet.</p>
-			</div>
+				<p class="">No videos uploaded yet.</p>
 			{% endif %}
 			{% for video, views, user_picture in most_recent %}
 			<div class="card">
 				<a href="/watch/{{ video.hash }}" class="card-link">
-					<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
+					<div class="card-thumb" style="background-image: url('{{ video.thumbnail_url }}');"></div>
 					<div class="card-header">
 						<div class="card-title">
 							<img src="{{user_picture}}" alt="Uploader avatar" class="video-card-avatar" />
@@ -85,14 +79,12 @@
 		<h2 class="section-title">Most Watched</h2>
 		<div class="grid">
 			{% if most_watched|length == 0 %}
-			<div class="card">
-				<p class="card-title">No videos have been watched yet.</p>
-			</div>
+				<p class="">No videos have been watched yet.</p>
 			{% endif %}
 			{% for video, views, user_picture in most_watched %}
 			<div class="card">
 				<a href="/watch/{{ video.hash }}" class="card-link">
-					<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
+					<div class="card-thumb" style="background-image: url('{{ video.thumbnail_url }}');"></div>
 					<div class="card-header">
 						<div class="card-title">
 							<img src="{{user_picture}}" alt="Uploader avatar" class="video-card-avatar" />
@@ -112,14 +104,12 @@
 		<h2 class="section-title">Random</h2>
 		<div class="grid">
 			{% if random_videos|length == 0 %}
-			<div class="card">
-				<p class="card-title">No random videos yet.</p>
-			</div>
+				<p class="">No random videos yet.</p>
 			{% endif %}
 			{% for video, views, user_picture in random_videos %}
 			<div class="card">
 				<a href="/watch/{{ video.hash }}" class="card-link">
-					<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
+					<div class="card-thumb" style="background-image: url('{{ video.thumbnail_url }}');"></div>
 					<div class="card-header">
 						<div class="card-title">
 							<img src="{{user_picture}}" alt="Uploader avatar" class="video-card-avatar" />
@@ -136,14 +126,12 @@
 		<h2 class="section-title">Your Videos</h2>
 		<div class="grid">
 			{% if user_videos|length == 0 %}
-			<div class="card">
-				<p class="card-title">You have not uploaded any videos yet.</p>
-			</div>
+				<p class="">You have not uploaded any videos yet.</p>
 			{% endif %}
 			{% for video, views, user_picture in user_videos %}
 			<div class="card">
 				<a href="/watch/{{ video.hash }}" class="card-link">
-					<div class="card-thumb" style="background-image: url('{{ video.thumbnail_uri }}');"></div>
+					<div class="card-thumb" style="background-image: url('{{ video.thumbnail_url }}');"></div>
 					<div class="card-header">
 						<div class="card-title">
 							<img src="{{user_picture}}" alt="Uploader avatar" class="video-card-avatar" />

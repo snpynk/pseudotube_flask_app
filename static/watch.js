@@ -41,13 +41,6 @@ async function initPlayer(manifUrl) {
 		]
 	});
 
-	// Load your HLS stream
-	// should fallback to a different player if shaka is not supported
-	if (!shaka.Player.isBrowserSupported()) {
-		video.src = video.dataset.origurl;
-		return;
-	}
-
 	try {
 		await player.load(manifUrl);
 		console.log('The video has now been loaded!');

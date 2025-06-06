@@ -14,7 +14,7 @@
 		</div>
 		{% else %}
 		<div id="video-container" class="shaka-video-container">
-			<video id="video-player" style="width:100%;height:100%" autoplay="false" data-origurl={{video_info.video_orig_url}} data-url={{ video_info.video_url }} data-hash={{ video_info.video.hash }} data-watchid={{ watch_id }} data-liked={{ video_info.liked }}></video>
+			<video id="video-player" style="width:100%;height:100%" autoplay="false" data-url={{ video_info.video_url }} data-hash={{ video_info.video.hash }} data-watchid={{ watch_id }} data-liked={{ video_info.liked }}></video>
 			<div class="shaka-controls-container"></div>
 		</div>
 		{% endif %}

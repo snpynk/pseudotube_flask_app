@@ -37,10 +37,8 @@ def create_app():
 
     app.config["SQLALCHEMY_DATABASE_URI"] = (
         f"mysql+pymysql://{quote_plus(DB_USER)}:{quote_plus(DB_PASS)}"
-        f"@/{DB_NAME}?unix_socket=/cloudsql/{DB_INSTANCE}"
+        f"@/{DB_NAME}?unix_socket={DB_INSTANCE}"
     )
-
-    print(app.config["SQLALCHEMY_DATABASE_URI"])
 
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 

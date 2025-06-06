@@ -25,7 +25,7 @@ def route_watch(video_hash):
             "redirect.html",
             redirect_url=url_for("main.route_index"),
             message="Video not found.",
-            timeout=5,
+            timeout=60,
         )
 
     video_stream_url = None
@@ -49,7 +49,7 @@ def route_watch(video_hash):
 
     video_info = {
         "video": video,
-        "video_url": (video_stream_url),
+        "video_url": video_stream_url,
         "uploader": db.session.scalar(db.select(User).where(User.id == video.user_id)),
         "view_count": (
             db.session.execute(

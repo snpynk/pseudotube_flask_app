@@ -30,11 +30,11 @@
 					<p class="pill-button gray">
 					<img src={{user.picture}} class="picture">
 					</p>
-					<a href="{{ url_for('route_logout') }}" class="pill-button black" title="Logout">⍈</a>
+					<a href="{{ url_for('user.route_logout') }}" class="pill-button black" title="Logout">⍈</a>
 				</div>
 
 				{% else %}
-				<a href="{{ url_for('route_oauth2_authorize', provider='google') }}" class="btn red" title="Login">Login</a>
+				<a href="{{ url_for('user.route_oauth2_authorize', provider='google') }}" class="btn red" title="Login">Login</a>
 				{% endif %}
 			</div>
 		</header>

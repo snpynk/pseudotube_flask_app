@@ -59,7 +59,9 @@ class OAuthProviderManager:
             {
                 "client_id": provider_data["client_id"],
                 "redirect_uri": url_for(
-                    "route_oauth2_callback", provider=provider, _external=True
+                    "user.route_oauth2_callback",
+                    provider=provider,
+                    _external=True,
                 ),
                 "response_type": "code",
                 "scope": " ".join(provider_data["scopes"]),
@@ -92,7 +94,9 @@ class OAuthProviderManager:
                 "code": request.args["code"],
                 "grant_type": "authorization_code",
                 "redirect_uri": url_for(
-                    "route_oauth2_callback", provider=provider, _external=True
+                    "user.route_oauth2_callback",
+                    provider=provider,
+                    _external=True,
                 ),
             },
             headers={"Accept": "application/json"},

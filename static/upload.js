@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	if (uploadButton && modal && closeButton) {
 		uploadButton.addEventListener('click', () => {
 			// Fetch the upload URL from the server
-			fetch("/generate_upload_url", { method: 'POST' })
+			fetch("/upload", { method: 'GET' })
 				.then(response => response.json())
 				.then(response_data => {
 					if (response_data.upload_url) {
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function () {
 					})
 
 					setTimeout(() => {
-						window.location.href = '/waitfor/' + data.upload_hash;
+						window.location.href = '/watch/waitfor/' + data.upload_hash;
 					}, 1000);
 
 					// const response = JSON.parse(xhr.responseText);

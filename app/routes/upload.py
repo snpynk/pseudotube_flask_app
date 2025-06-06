@@ -1,4 +1,7 @@
 import json
+import os
+import subprocess
+from fractions import Fraction
 from time import time
 from uuid import uuid4
 
@@ -9,7 +12,6 @@ from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
 
 from ..context import db, gae, storage_manager, transcoder_service
-
 from ..models.video import Video
 
 route_upload_bp = Blueprint("upload", __name__, url_prefix="/upload")
@@ -91,31 +93,65 @@ def upload():
 
     data = request.get_json()
 
-    auth_req = google_requests.Request()
-    token = id_token.fetch_id_token(auth_req, gae.GCF_FFPROBE)
+    metadata = {}
+    if "IS_GAE" in os.environ:
+        auth_req = google_requests.Request()
+        token = id_token.fetch_id_token(auth_req, gae.GCF_FFPROBE)
 
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json",
-    }
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        }
 
-    response = requests.post(
-        gae.GCF_FFPROBE,
-        headers=headers,
-        data=json.dumps(
-            {"gcs_path": f"gs://{gae.GCP_BUCKET_NAME}/uploads/{upload_hash}"}
-        ),
-    )
-
-    if response.status_code != 200:
-        return render_template(
-            "redirect.html",
-            redirect_url=url_for("main.route_index"),
-            message="Failed to get video metadata. Please try again later.",
-            timeout=5,
+        response = requests.post(
+            gae.GCF_FFPROBE,
+            headers=headers,
+            data=json.dumps(
+                {"gcs_path": f"gs://{gae.GCP_BUCKET_NAME}/uploads/{upload_hash}"}
+            ),
         )
 
-    metadata = response.json()
+        if response.status_code != 200:
+            return render_template(
+                "redirect.html",
+                redirect_url=url_for("main.route_index"),
+                message="Failed to get video metadata. Please try again later.",
+                timeout=5,
+            )
+
+        metadata = response.json()
+    else:
+        url = storage_manager.get_public_url(f"uploads/{upload_hash}")
+
+        result = subprocess.run(
+            [
+                "ffprobe",
+                "-v",
+                "error",
+                "-select_streams",
+                "v:0",
+                "-show_entries",
+                "stream=width,height,r_frame_rate,duration",
+                "-of",
+                "json",
+                url,
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True,
+        )
+
+        data = json.loads(result.stdout.decode())
+        stream = data["streams"][0]
+
+        fps = float(Fraction(stream["r_frame_rate"]))
+
+        metadata = {
+            "width": stream["width"],
+            "height": stream["height"],
+            "fps": fps,
+            "duration": float(stream.get("duration", 0)),
+        }
 
     job = transcoder_service.create_transcoder_job(
         f"gs://{gae.GCP_BUCKET_NAME}/uploads/{upload_hash}",
@@ -148,7 +184,7 @@ def upload():
 
     return render_template(
         "redirect.html",
-        redirect_url=url_for("watch.route_wait", video_hash=upload_hash),
+        redirect_url=url_for("watch.route_waitfor", video_hash=upload_hash),
         message="Video upload done successfully. It will be processed shortly.",
-        timeout=3,
+        timeout=5,
     )

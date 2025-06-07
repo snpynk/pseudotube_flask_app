@@ -110,11 +110,13 @@ document.addEventListener('DOMContentLoaded', function () {
 							title: formData.get('video-title'),
 							description: formData.get('video-desc'),
 						})
+					}).then(() => {
+						setTimeout(() => {
+							window.location.href = '/watch/waitfor/' + data.upload_hash;
+						}, 3000);
+						statusText.textContent = 'Video uploaded successfully! Redirecting in 3 seconds...';
 					})
 
-					setTimeout(() => {
-						window.location.href = '/watch/waitfor/' + data.upload_hash;
-					}, 1000);
 
 					// const response = JSON.parse(xhr.responseText);
 					// if (response.redirect_url) {

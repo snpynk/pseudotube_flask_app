@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	if (uploadButton && modal && closeButton) {
 		uploadButton.addEventListener('click', () => {
-			// Fetch the upload URL from the server
 			fetch("/upload", { method: 'GET' })
 				.then(response => response.json())
 				.then(response_data => {
@@ -73,19 +72,20 @@ document.addEventListener('DOMContentLoaded', function () {
 	const form = document.getElementById('upload-form');
 	const progressBar = document.getElementById('upload-progress');
 	const statusText = document.getElementById('upload-status');
+	const submitButton = document.getElementById('upload-submit');
 
 	if (form) {
 		form.addEventListener('submit', function (e) {
 			e.preventDefault();
 
 			const formData = new FormData(form);
-			console.log('Form data:', formData);
 
 			const xhr = new XMLHttpRequest();
 			xhr.open('PUT', form.action, true);
 
 			progressBar.style.display = 'block';
 			statusText.textContent = 'Uploading...';
+			submitButton.disabled = true;
 
 			xhr.upload.onprogress = function (e) {
 				if (e.lengthComputable) {
@@ -113,24 +113,18 @@ document.addEventListener('DOMContentLoaded', function () {
 					}).then(() => {
 						setTimeout(() => {
 							window.location.href = '/watch/waitfor/' + data.upload_hash;
-						}, 3000);
-						statusText.textContent = 'Video uploaded successfully! Redirecting in 3 seconds...';
+						}, 1000);
+						statusText.textContent = 'Video uploaded successfully! Taking you to your future video...';
 					})
-
-
-					// const response = JSON.parse(xhr.responseText);
-					// if (response.redirect_url) {
-					// 	setTimeout(() => {
-					// 		window.location.href = response.redirect_url;
-					// 	}, 1000);
-					// }
 				} else {
 					statusText.textContent = 'Upload failed. Please try again.';
+					resetUploadForm();
 				}
 			};
 
 			xhr.onerror = function () {
 				statusText.textContent = 'An error occurred during upload.';
+				resetUploadForm();
 			};
 
 			const file = document.getElementById('file-upload').files[0];
@@ -139,3 +133,14 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 	}
 });
+
+function resetUploadForm() {
+	const form = document.getElementById('upload-form');
+	if (form) {
+		form.reset();
+		document.getElementById('upload-text').textContent = 'Click or drag file here to upload';
+		document.getElementById('upload-progress').style.display = 'none';
+		document.getElementById('upload-status').textContent = '';
+		document.getElementById('upload-submit').disabled = false;
+	}
+}

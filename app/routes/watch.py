@@ -119,7 +119,7 @@ def route_waitfor(video_hash):
     if video.status == 0:
         return redirect(url_for("watch.route_watch", video_hash=video_hash))
 
-    if video.status == 1:
+    elif video.status in (1, 2):
         return render_template(
             "waitfor.html",
             user=current_user,

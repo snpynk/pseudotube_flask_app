@@ -74,6 +74,8 @@ def route_transcoder_status():
             if video.status == 1:
                 return jsonify({"status": "processing"}), 200
             elif video.status == 2:
+                return jsonify({"status": "preparing"}), 200
+            elif video.status == 3:
                 return jsonify({"status": "failed"}), 200
             else:
                 return jsonify({"error": "Unknown video status"}), 500

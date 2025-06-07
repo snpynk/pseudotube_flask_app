@@ -46,10 +46,10 @@ document.addEventListener('DOMContentLoaded', function() {
 		fetch("/api/transcoder/status?video_hash={{ video.hash }}")
 			.then(response => response.json())
 			.then(data => {
-				if (data.status === 'processing') {
+				if (data.status === 'processing' || data.status === 'preparing') {
 					random_emoji = ['🔄', '⏳', '⌛', '🕒'][Math.floor(Math.random() * 4)];
 					retry++;
-					document.getElementById('message').innerText = "Your video is being processed... " + random_emoji;
+					document.getElementById('message').innerText = `PSEUDOTUBE is ${data.status} your video... ${random_emoji}`;
 				} else {
 					if (data.status === 'processed') {
 						redirectTo("/watch/{{video.hash}}", "Video processed! Redirecting in %d seconds...", 3);

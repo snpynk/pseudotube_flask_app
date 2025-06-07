@@ -71,14 +71,14 @@ class TranscoderService:
                 "height": scale_height,
                 "width": scale_width,
                 "bitrate_bps": int(4500000 * (scale_height / 1080)),
-                "frame_rate": fps if scale_height >= 720 else 30,
+                "frame_rate": fps if scale_height >= 720 else min(30, fps),
             }
 
         elementary_streams = [
             ElementaryStream(
                 key=f"video_{key}",
                 video_stream=VideoStream(
-                    h264=VideoStream.H264CodecSettings(
+                    h265=VideoStream.H265CodecSettings(
                         height_pixels=resolution["height"],
                         width_pixels=resolution["width"],
                         bitrate_bps=resolution["bitrate_bps"],

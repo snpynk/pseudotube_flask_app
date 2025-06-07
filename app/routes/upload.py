@@ -1,3 +1,5 @@
+from threading import Thread
+
 import json
 import os
 import subprocess
@@ -6,7 +8,15 @@ from time import time
 from uuid import uuid4
 
 import requests
-from flask import Blueprint, jsonify, render_template, request, session, url_for
+from flask import (
+    Blueprint,
+    jsonify,
+    render_template,
+    request,
+    session,
+    url_for,
+    current_app,
+)
 from flask_login import current_user
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
@@ -92,7 +102,45 @@ def upload():
         )
 
     data = request.get_json()
+    title = data.get("title", "Untitled Video")
+    description = data.get("description", "")
 
+    db.session.add(
+        Video(
+            title=title,
+            description=description,
+            hash=upload_hash,
+            thumbnail_url="",
+            user_id=current_user.id,
+            hidden=0,
+            status=2,
+        )
+    )
+
+    db.session.commit()
+
+    thread = Thread(
+        target=create_upload_job,
+        args=(
+            current_app._get_current_object(),
+            upload_hash,
+        ),
+    )
+    thread.start()
+
+    session.pop("last_upload_timestamp")
+    session.pop("last_upload_url")
+    session.pop("last_upload_hash")
+
+    return render_template(
+        "redirect.html",
+        redirect_url=url_for("watch.route_waitfor", video_hash=upload_hash),
+        message="Video upload done successfully. It will be processed shortly.",
+        timeout=3,
+    )
+
+
+def get_video_metadata(upload_hash):
     metadata = {}
     if "IS_GAE" in os.environ:
         auth_req = google_requests.Request()
@@ -110,14 +158,6 @@ def upload():
                 {"gcs_path": f"gs://{gae.GCP_BUCKET_NAME}/uploads/{upload_hash}"}
             ),
         )
-
-        if response.status_code != 200:
-            return render_template(
-                "redirect.html",
-                redirect_url=url_for("main.route_index"),
-                message="Failed to get video metadata. Please try again later.",
-                timeout=5,
-            )
 
         metadata = response.json()
     else:
@@ -153,38 +193,43 @@ def upload():
             "duration": float(stream.get("duration", 0)),
         }
 
-    job = transcoder_service.create_transcoder_job(
-        f"gs://{gae.GCP_BUCKET_NAME}/uploads/{upload_hash}",
-        f"gs://{gae.GCP_BUCKET_NAME}/transcoded/{upload_hash}/",
-        metadata["width"],
-        metadata["height"],
-        metadata["fps"],
-        metadata["duration"],
-    )
+    if not metadata:
+        raise ValueError("Failed to extract video metadata.")
 
-    db.session.add(
-        Video(
-            title=data.get("title"),
-            description=data.get("description", None),
-            hash=upload_hash,
-            thumbnail_url="",
-            user_id=current_user.id,
-            hidden=0,
-            status=1,
-            duration=metadata["duration"],
-            job=job.name,
-        )
-    )
+    return metadata
 
-    db.session.commit()
 
-    session.pop("last_upload_timestamp")
-    session.pop("last_upload_url")
-    session.pop("last_upload_hash")
+def create_upload_job(app, upload_hash):
+    with app.app_context():
+        video = Video.query.filter_by(hash=upload_hash).first()
 
-    return render_template(
-        "redirect.html",
-        redirect_url=url_for("watch.route_waitfor", video_hash=upload_hash),
-        message="Video upload done successfully. It will be processed shortly.",
-        timeout=5,
-    )
+        if not video:
+            raise ValueError(f"Video ({upload_hash}) not found in the database.")
+
+        try:
+            metadata = get_video_metadata(upload_hash)
+
+            job = transcoder_service.create_transcoder_job(
+                f"gs://{gae.GCP_BUCKET_NAME}/uploads/{upload_hash}",
+                f"gs://{gae.GCP_BUCKET_NAME}/transcoded/{upload_hash}/",
+                metadata["width"],
+                metadata["height"],
+                metadata["fps"],
+                metadata["duration"],
+            )
+
+            if not job:
+                raise ValueError("Failed to create transcoder job.")
+
+            if not video:
+                raise ValueError(f"Video ({upload_hash}) not found in the database.")
+
+            video.job = job.name
+            video.status = 1
+
+            db.session.commit()
+
+        except Exception:
+            video.status = 3
+            db.session.commit()
+            print(f"Error processing video {upload_hash}: {str(Exception)}")

@@ -56,8 +56,8 @@ class TranscoderService:
         output_uri,
         width=1920,
         height=1080,
-        duration: float = 0,
         fps: float = 60,
+        duration: float = 0,
     ):
         parent = f"projects/{self.PROJECT_ID}/locations/{self.LOCATION}"
 

@@ -141,8 +141,8 @@ def upload():
             check=True,
         )
 
-        data = json.loads(result.stdout.decode())
-        stream = data["streams"][0]
+        decoded_result = json.loads(result.stdout.decode())
+        stream = decoded_result["streams"][0]
 
         fps = float(Fraction(stream["r_frame_rate"]))
 

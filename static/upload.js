@@ -110,18 +110,21 @@ document.addEventListener('DOMContentLoaded', function () {
 							title: formData.get('video-title'),
 							description: formData.get('video-desc'),
 						})
-					})
+					}).then(response => {
+						if (!response.ok) {
+							throw new Error('Failed to save video metadata');
+						}
+						return response.json();
+					}).then(() => {
+						setTimeout(() => {
+							window.location.href = '/watch/waitfor/' + data.upload_hash;
+						}, 1000);
+					}).catch(error => {
+						console.error('Error saving video metadata:', error);
+						statusText.textContent = 'Upload complete, but failed to save video metadata.';
+					});
 
-					setTimeout(() => {
-						window.location.href = '/watch/waitfor/' + data.upload_hash;
-					}, 1000);
 
-					// const response = JSON.parse(xhr.responseText);
-					// if (response.redirect_url) {
-					// 	setTimeout(() => {
-					// 		window.location.href = response.redirect_url;
-					// 	}, 1000);
-					// }
 				} else {
 					statusText.textContent = 'Upload failed. Please try again.';
 				}

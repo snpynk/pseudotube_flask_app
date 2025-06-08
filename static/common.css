@@ -10,12 +10,15 @@ body {
 	background-color: #f9f9f9;
 	color: #333;
 	line-height: 1.5;
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
 }
 
 /* Top Bar */
 .top-bar {
 	display: flex;
-	flex-wrap: wrap; /* allows wrapping */
+	flex-wrap: nowrap; /* prevent wrapping */
 	justify-content: space-between;
 	align-items: center;
 	background: #fff;
@@ -25,6 +28,7 @@ body {
 	top: 0;
 	z-index: 1000;
 	gap: 12px;
+	overflow: hidden; /* prevent overflow */
 }
 
 .logo {
@@ -35,6 +39,8 @@ body {
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	min-width: 24px; /* ensure at least icon width */
+	flex-shrink: 0;
 }
 
 .search-input {
@@ -51,6 +57,7 @@ body {
 	min-width: 0;
 	display: flex;
 	align-items: center;
+	max-width: 600px; /* prevent search from taking too much space */
 }
 .input-text {
 	width: 100%;
@@ -123,16 +130,17 @@ body {
 }
 
 .btn-group {
+	height: 40px; /* Match the height of other top bar elements */
 	display: inline-flex;
 	border: 1px solid #ccc;
 	border-radius: 9999px;
-	flex-shrink: 1;
-	max-width: 100%;
+	flex-shrink: 0; /* prevent shrinking */
 	overflow: hidden;
 	font-size: 14px;
 }
 
 .btn-group > * {
+	height: 100%; /* Make buttons fill the container */
 	height: 40px;
 	flex: 1;
 	border: none;
@@ -154,7 +162,7 @@ body {
 	border-right: 1px solid #ccc;
 	background-color: #f0f0f0;
 	color: #000;
-	cursor: default; /* user can’t click the profile info */
+	cursor: default; /* user can't click the profile info */
 }
 
 .btn-group > *:last-child {
@@ -180,6 +188,7 @@ body {
 /* Section Layout */
 .section {
 	margin: 40px 24px;
+	flex: 1; /* push footer down */
 }
 .section-title {
 	margin-bottom: 16px;
@@ -326,16 +335,14 @@ body {
 	border-color: #999;
 }
 
-/* Removed or Consolidated */
-/* .text-bar-label, .button-group > *, composes { */
-/* 	display: none; */
-/* } */
+/* Right section */
 .right-section {
 	display: flex;
-	flex-wrap: wrap;
+	flex-wrap: nowrap; /* prevent wrapping */
 	align-items: center;
 	gap: 8px;
 	min-width: 0;
+	flex-shrink: 0;
 }
 
 .section {
@@ -382,24 +389,21 @@ body {
 	padding: 0 24px;
 }
 .video-player {
-	position: relative;
-	width: 100%;
-	max-width: 100%;
-	background: #000;
-	border-radius: 10px;
-	overflow: hidden;
-	margin-bottom: 20px;
-	margin-bottom: 20px;
-	/* aspect-ratio: 16 / 9; /* Fallback in case JS doesn't set it */ */
+    position: relative;
+    width: 100%;
+    background: #000;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    /* Remove fixed aspect ratio and use dynamic sizing */
+    max-height: calc(100vh - 200px); /* Adjust based on your layout */
+    min-height: 300px; /* Minimum height */
 }
+
 .video-player video {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	object-fit: contain;
-	background: #000;
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Show full video without cropping */
 }
 video {
 	width: 100%;
@@ -419,6 +423,29 @@ video {
 	width: 100%;
 	background: #000;
 	border-radius: 10px;
+}
+.shaka-video-container {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+/* Adjust video container aspect ratio dynamically */
+#video-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    padding-bottom: 56.25%; /* Default 16:9 ratio */
+}
+
+#video-container video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 .title-like-row {
 	display: flex;
@@ -491,7 +518,6 @@ video {
 	font-size: 12px;
 	line-height: 1.4;
 	margin-bottom: 16px;
-	margin-bottom: 16px;
 }
 
 .comment-form {
@@ -554,27 +580,106 @@ video {
 	color: #333;
 	white-space: pre-wrap;
 }
+
+/* Footer */
+.footer {
+	background: #fff;
+	border-top: 1px solid #ccc;
+	padding: 20px;
+	text-align: center;
+	margin-top: auto; /* push to bottom */
+	display: flex;
+	justify-content: center;
+	gap: 20px;
+}
+
+.footer a {
+	color: #ff0000;
+	text-decoration: none;
+}
+
+.footer a:hover {
+	text-decoration: underline;
+}
+
 @media (max-width: 768px) {
+	.top-bar {
+		flex-wrap: nowrap; /* prevent wrapping */
+		overflow: hidden;
+	}
+	
 	.logo {
-		max-width: 100px;
-		font-size: 18px;
+		font-size: 0; /* hide text */
+		min-width: 24px;
+		position: relative;
 	}
-	.input-text {
-		font-size: 12px;
-		padding: 8px;
+	
+	.logo::before {
+		content: "P";
+		font-size: 24px;
 	}
-	.btn, .pill-button {
-		font-size: 12px;
-		padding: 6px 10px;
-	}
-	.btn-group {
-		flex-direction: column;
-	}
+	
 	.text-bar {
-		width: 100%;
+		min-width: 0;
+		flex-shrink: 1;
 	}
+	
 	.right-section {
-		width: 100%;
-		justify-content: flex-end;
+		flex-shrink: 0;
 	}
+	
+	.btn-group {
+		min-width: fit-content;
+	}
+	
+	.btn-group > * {
+		padding: 10px 12px;
+	}
+	
+	.btn-group > *:first-child {
+		padding-right: 8px;
+	}
+	
+	.btn-group .picture {
+		margin-right: 0;
+	}
+	
+	.btn-group > *:first-child span {
+		display: none; /* hide username on mobile */
+	}
+}
+
+@media (max-width: 480px) {
+	.top-bar {
+		padding: 8px 12px;
+		gap: 8px;
+	}
+	
+	.input-text {
+		padding: 8px 12px;
+		font-size: 12px;
+	}
+	
+	.btn, .pill-button {
+		padding: 8px 12px;
+		font-size: 12px;
+	}
+	.video-player {
+			max-height: calc(100vh - 120px);
+			min-height: 200px;
+	}
+}
+@media (max-width: 768px) {
+    .video-player {
+        max-height: calc(100vh - 150px); /* Smaller max height on mobile */
+    }
+    
+    /* Keep account buttons properly sized */
+    .btn-group {
+        height: 36px; /* Slightly smaller on mobile */
+    }
+    
+    .btn-group > * {
+        padding: 8px 12px; /* Adjusted padding */
+    }
 }

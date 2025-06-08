@@ -2,64 +2,69 @@
 {% block title %}{{ video_info.video.title }}{% endblock %}
 {% block content %}
 
-<div class="watch-container">
-	<div class="video-player">
-		{% if video_info.video.status != 0 %}
-		<div class="video-placeholder-message">
-			<h2 class="video-error">This video is still processing.</h2>
+<div class="page-container">
+	<div class="video-player-section">
+		<div class="video-frame">
+			{% if video_info.video.status > 0 and video_info.status < 3 %}
+			<div class="video-placeholder-message">
+				<h2 class="video-error">This video is still processing.</h2>
+			</div>
+			{% elif video_info.video.status == 3 %}
+			<div class="video-placeholder-message">
+				<h2 class="video-error">This video has been been marked as malformed.</h2>
+			</div>
+			{% else %}
+			<div id="video-container" class="shaka-video-container">
+				<video id="video-player" autoplay="false" data-url={{ video_info.video_url }} data-hash={{ video_info.video.hash }} data-watchid={{ watch_id }} data-liked={{ video_info.liked }}></video>
+			</div>
+			{% endif %}
 		</div>
-		{% elif video_info.video.status == 2 %}
-		<div class="video-placeholder-message">
-			<h2 class="video-error">This video has been been marked as malformed.</h2>
-		</div>
-		{% else %}
-		<div id="video-container" class="shaka-video-container">
-			<video id="video-player" style="width:100%;height:100%" autoplay="false" data-url={{ video_info.video_url }} data-hash={{ video_info.video.hash }} data-watchid={{ watch_id }} data-liked={{ video_info.liked }}></video>
-			<div class="shaka-controls-container"></div>
-		</div>
+	</div>
+
+	<div class="video-info-section">
+		<div class="title-like-row">
+			<div class="uploader-info">
+				<img src="{{ video_info.uploader.picture }}" class="uploader-avatar" />
+			</div>
+			<div style="flex:1; min-width: 0;">
+				<div class="video-title">{{ video_info.video.title }}</div>
+				<div class="video-stats">
+					{{ video_info.view_count }} views • {{ video_info.video.created_at.strftime('%b %d, %Y') }}
+				</div>
+			</div>
+			{% if user.id == video_info.video.user_id %}
+			<button id="delete-button" class="delete-button" aria-label="Delete video" >🗑️</button>
+
+			{% endif %}
+			<button id="like-button" class="like-button" aria-label="Like video" {% if video_info.liked %}liked{% endif %}>
+				♡  <span id="like-count">{{ video_info.like_count }}</span>
+			</button>
+		</div>	
+
+		{% if video_info.video.description != None %}
+		<div class="video-description">{{ video_info.video.description }}</div>
 		{% endif %}
 	</div>
 
-	<div class="title-like-row">
-		<div class="uploader-info">
-			<img src="{{ video_info.uploader.picture }}" class="uploader-avatar" />
-		</div>
-		<div style="flex:1; min-width: 0;">
-			<div class="video-title">{{ video_info.video.title }}</div>
-			<div class="video-stats">
-				{{ video_info.view_count }} views • {{ video_info.video.created_at.strftime('%b %d, %Y') }}
+	<div class="comments-section">
+		<form id="comment-form" class="comment-form" method="POST" action="/watch/{{ video_info.video.hash }}#comments">
+			<textarea id="comment-text-input" name="comment_text" class="comment-input" rows="3" placeholder="Add a comment..."></textarea>
+			<button type="submit" class="comment-submit-btn">Submit</button>
+		</form>
+
+		<div id="comments" class="comments-section">
+			{% for comment in video_info.comments %}
+			<div class="comment">
+				<img src="{{ comment.user_picture }}" alt="Commenter avatar" class="comment-avatar" />
+				<div class="comment-content">
+					<div class="comment-meta">{{ comment[0].created_at.strftime('%b %d, %Y') }}</div>
+					<div class="comment-text">{{ comment[0].text }}</div>
+				</div>
 			</div>
+			{% else %}
+			<p>No comments yet. Be the first to comment!</p>
+			{% endfor %}
 		</div>
-		{% if user.id == video_info.video.user_id %}
-		<button id="delete-button" class="delete-button" aria-label="Delete video" >🗑️</button>
-
-		{% endif %}
-		<button id="like-button" class="like-button" aria-label="Like video" {% if video_info.liked %}liked{% endif %}>
-			♡  <span id="like-count">{{ video_info.like_count }}</span>
-		</button>
-	</div>	
-
-	{% if video_info.video.description != None %}
-	<div class="video-description">{{ video_info.video.description }}</div>
-	{% endif %}
-
-	<form id="comment-form" class="comment-form" method="POST" action="/watch/{{ video_info.video.hash }}#comments">
-		<textarea id="comment-text-input" name="comment_text" class="comment-input" rows="3" placeholder="Add a comment..."></textarea>
-		<button type="submit" class="comment-submit-btn">Submit</button>
-	</form>
-
-	<div id="comments" class="comments-section">
-		{% for comment in video_info.comments %}
-		<div class="comment">
-			<img src="{{ comment.user_picture }}" alt="Commenter avatar" class="comment-avatar" />
-			<div class="comment-content">
-				<div class="comment-meta">{{ comment[0].created_at.strftime('%b %d, %Y') }}</div>
-				<div class="comment-text">{{ comment[0].text }}</div>
-			</div>
-		</div>
-		{% else %}
-		<p>No comments yet. Be the first to comment!</p>
-		{% endfor %}
 	</div>
 
 </div>

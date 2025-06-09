@@ -10,13 +10,13 @@ route_transcoder_bp = Blueprint("transcoder", __name__, url_prefix="/api/transco
 def route_transcoder_status():
     if request.method == "POST":
         data = request.get_json()
-        job_id = data.get("job_id")
-        state = data.get("state")
+        job_name = data.get("job_name")
+        job_state = data.get("job_state")
 
-        if not job_id or not state:
-            return jsonify({"error": "Missing job_id or job_state"}), 400
+        if not job_name or not job_state:
+            return jsonify({"error": "Missing job_name or job_state"}), 400
 
-        video = db.session.scalar(db.select(Video).where(Video.job == job_id))
+        video = db.session.scalar(db.select(Video).where(Video.job == job_name))
 
         if not video:
             return jsonify({"error": "Video not found"}), 404
@@ -29,12 +29,12 @@ def route_transcoder_status():
 
         video.job = None
 
-        if state == "SUCCEEDED":
+        if job_state == "SUCCEEDED":
             video.status = 0
             video.thumbnail_url = storage_manager.get_public_url(
                 f"transcoded/{video.hash}/small-thumbnail0000000000.jpeg"
             )
-        elif state == "FAILED":
+        elif job_state == "FAILED":
             video.status = 2  # Failed status
         else:
             return jsonify({"error": "Invalid job state"}), 400

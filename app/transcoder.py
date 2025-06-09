@@ -71,7 +71,7 @@ class TranscoderService:
                 "height": scale_height,
                 "width": scale_width,
                 "bitrate_bps": int(4500000 * (scale_height / 1080)),
-                "frame_rate": fps if scale_height >= 720 else min(30, fps),
+                "frame_rate": min(120, fps) if scale_height >= 720 else min(30, fps),
             }
 
         elementary_streams = [

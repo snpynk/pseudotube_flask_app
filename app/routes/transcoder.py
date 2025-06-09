@@ -9,8 +9,8 @@ route_transcoder_bp = Blueprint("transcoder", __name__, url_prefix="/api/transco
 @route_transcoder_bp.route("/status", methods=["GET", "POST"])
 def route_transcoder_status():
     if request.method == "POST":
-        data = request.get_json()["job"]
-        job_id = data.get("name")
+        data = request.get_json()
+        job_id = data.get("job_id")
         state = data.get("state")
 
         if not job_id or not state:
@@ -35,7 +35,7 @@ def route_transcoder_status():
                 f"transcoded/{video.hash}/small-thumbnail0000000000.jpeg"
             )
         elif state == "FAILED":
-            video.status = 3  # Failed status
+            video.status = 2  # Failed status
         else:
             return jsonify({"error": "Invalid job state"}), 400
 
